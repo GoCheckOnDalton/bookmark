@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Applicatiebibliotheek | Dalton Den Haag</title>
+
+  <!-- Favicon & site icon -->
+  <link rel="icon" type="image/png" sizes="32x32"  href="https://i0.wp.com/daltondenhaag.nl/wp-content/uploads/2018/02/cropped-logo.png?fit=32%2C32&ssl=1">
+  <link rel="icon" type="image/png" sizes="16x16"  href="https://i0.wp.com/daltondenhaag.nl/wp-content/uploads/2018/02/cropped-logo.png?fit=16%2C16&ssl=1">
+  <link rel="apple-touch-icon"      sizes="180x180" href="https://i0.wp.com/daltondenhaag.nl/wp-content/uploads/2018/02/cropped-logo.png?fit=180%2C180&ssl=1">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -118,6 +124,15 @@
 
     .burger:hover {
       background: rgba(255, 255, 255, 0.22);
+    }
+
+    .topbar-dalton-logo {
+      height: 42px;
+      width: auto;
+      flex-shrink: 0;
+      /* Origineel logo is donkerblauw op wit → wit maken voor de donkere topbar */
+      filter: brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0,0,0,0.22));
+      opacity: 0.94;
     }
 
     .topbar-title {
@@ -649,6 +664,639 @@
       box-shadow: 0 18px 36px rgba(181, 111, 89, 0.40);
     }
 
+    /* ── SETTINGS VIEW ── */
+    .settings-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .settings-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 9px 15px;
+      font: inherit;
+      font-size: 0.83rem;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+
+    .settings-back:hover {
+      border-color: var(--brick);
+      color: var(--brick);
+    }
+
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .settings-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-soft);
+      overflow: hidden;
+    }
+
+    .settings-panel-head {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .settings-panel-eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.62rem;
+      color: var(--brick);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .settings-panel-head h3 {
+      margin: 0 0 5px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1;
+    }
+
+    .settings-panel-head p {
+      margin: 0;
+      font-size: 0.80rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* App list */
+    .settings-app-list {
+      max-height: 520px;
+      overflow-y: auto;
+    }
+
+    .settings-app-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--line);
+      transition: background 0.15s;
+    }
+
+    .settings-app-item:last-child { border-bottom: none; }
+
+    .settings-app-item:hover { background: rgba(29, 55, 78, 0.03); }
+
+    .settings-app-item.is-hidden { opacity: 0.4; }
+
+    .settings-app-thumb {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    .settings-app-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .settings-app-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .settings-app-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .settings-app-url {
+      font-size: 0.72rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Toggle switch */
+    .toggle-switch {
+      position: relative;
+      width: 34px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: rgba(29, 55, 78, 0.16);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .toggle-track::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .toggle-switch input:checked + .toggle-track { background: var(--primary); }
+    .toggle-switch input:checked + .toggle-track::after { transform: translateX(14px); }
+
+    .custom-tag {
+      font-size: 0.60rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(181, 111, 89, 0.12);
+      color: var(--brick);
+      border-radius: 4px;
+      padding: 2px 6px;
+      flex-shrink: 0;
+    }
+
+    .delete-app-btn {
+      width: 26px;
+      height: 26px;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 6px;
+      color: rgba(200, 60, 60, 0.38);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 0.72rem;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .delete-app-btn:hover {
+      background: rgba(200, 60, 60, 0.08);
+      color: #c84d4d;
+      border-color: rgba(200, 60, 60, 0.24);
+    }
+
+    /* Add form */
+    .add-form {
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .form-row { display: flex; flex-direction: column; gap: 5px; }
+
+    .form-label {
+      font-size: 0.77rem;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: 0.02em;
+    }
+
+    .form-label .required { color: var(--brick); }
+
+    .form-label-hint {
+      font-weight: 500;
+      color: var(--muted);
+      font-size: 0.74rem;
+    }
+
+    .form-input {
+      height: 38px;
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+      border-radius: 8px;
+      padding: 0 13px;
+      font: inherit;
+      font-size: 0.86rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(24, 167, 223, 0.10);
+    }
+
+    .form-input-sm {
+      width: 64px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0 8px;
+    }
+
+    /* Icon upload */
+    .icon-upload-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px;
+      border: 1px dashed rgba(29, 55, 78, 0.20);
+      border-radius: 10px;
+      background: rgba(255, 252, 248, 0.5);
+      transition: border-color 0.2s;
+    }
+
+    .icon-upload-area:hover { border-color: rgba(24, 167, 223, 0.40); }
+
+    .icon-preview {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: var(--bg-strong);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .icon-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .icon-upload-info { display: flex; flex-direction: column; gap: 5px; }
+
+    .icon-upload-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 7px 12px;
+      font: inherit;
+      font-size: 0.81rem;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .icon-upload-btn:hover { border-color: var(--primary); color: var(--primary-dark); }
+
+    .icon-upload-hint { font-size: 0.72rem; color: var(--muted); }
+
+    /* Color pickers */
+    .color-row { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+
+    .color-swatch {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 2px;
+      cursor: pointer;
+      background: none;
+      flex-shrink: 0;
+    }
+
+    .color-preview {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+
+    /* Submit button */
+    .form-actions { padding-top: 2px; }
+
+    .btn-add {
+      width: 100%;
+      height: 42px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--brick), #d4896f);
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(181, 111, 89, 0.26);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-add:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(181, 111, 89, 0.34);
+    }
+
+    .form-msg {
+      padding: 10px 13px;
+      border-radius: 8px;
+      font-size: 0.81rem;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .form-error {
+      background: rgba(200, 60, 60, 0.07);
+      border: 1px solid rgba(200, 60, 60, 0.22);
+      color: #c84d4d;
+    }
+
+    .form-success {
+      background: rgba(15, 138, 99, 0.07);
+      border: 1px solid rgba(15, 138, 99, 0.22);
+      color: #0a7a56;
+    }
+
+    @media (max-width: 960px) {
+      .settings-layout { grid-template-columns: 1fr; }
+      .settings-app-list { max-height: 300px; }
+    }
+
+    /* ── PLUS TILE ── */
+    .plus-tile {
+      border-style: dashed !important;
+      border-color: rgba(181, 111, 89, 0.32) !important;
+      background: rgba(255, 249, 244, 0.55) !important;
+      cursor: pointer;
+      box-shadow: none !important;
+    }
+
+    .plus-tile:hover {
+      border-color: var(--brick) !important;
+      background: rgba(181, 111, 89, 0.06) !important;
+      transform: translateY(-4px) !important;
+    }
+
+    .plus-tile::before { display: none !important; }
+
+    .plus-tile-icon {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      border: 2px dashed rgba(181, 111, 89, 0.38);
+      background: rgba(181, 111, 89, 0.07);
+      display: grid;
+      place-items: center;
+      color: var(--brick);
+      font-size: 1.4rem;
+      transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    }
+
+    .plus-tile:hover .plus-tile-icon {
+      background: rgba(181, 111, 89, 0.14);
+      border-color: var(--brick);
+      transform: scale(1.06);
+    }
+
+    .plus-tile-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--brick);
+      text-align: center;
+      margin-top: 2px;
+      opacity: 0.85;
+    }
+
+    /* List view plus tile */
+    .grid.list .plus-tile {
+      justify-content: flex-start;
+      gap: 16px;
+    }
+
+    .grid.list .plus-tile .plus-tile-icon {
+      width: 38px;
+      height: 38px;
+      font-size: 1rem;
+      border-radius: 50%;
+    }
+
+    /* ── CATALOG MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(18, 49, 74, 0.36);
+      backdrop-filter: blur(5px);
+      z-index: 200;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      animation: modal-fade 0.16s ease;
+    }
+
+    .modal-overlay[hidden] { display: none; }
+
+    @keyframes modal-fade {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .modal-panel {
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-soft);
+      box-shadow: 0 32px 80px rgba(18, 49, 74, 0.22);
+      width: min(540px, 96vw);
+      max-height: 78vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modal-up 0.20s cubic-bezier(0.22,0.61,0.36,1);
+    }
+
+    @keyframes modal-up {
+      from { transform: translateY(16px) scale(0.97); opacity: 0; }
+      to   { transform: none; opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1;
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line);
+      background: transparent;
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 0.9rem;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .modal-close:hover {
+      border-color: rgba(200,60,60,0.28);
+      color: #c84d4d;
+      background: rgba(200,60,60,0.05);
+    }
+
+    .catalog-list {
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .catalog-item {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--line);
+      transition: background 0.12s;
+    }
+
+    .catalog-item:last-child { border-bottom: none; }
+    .catalog-item:hover { background: rgba(29, 55, 78, 0.03); }
+
+    .catalog-item-thumb {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .catalog-item-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .catalog-item-info { flex: 1; min-width: 0; }
+
+    .catalog-item-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .catalog-item-sub {
+      font-size: 0.73rem;
+      color: var(--muted);
+    }
+
+    .btn-catalog-add {
+      padding: 7px 13px;
+      border: 1px solid rgba(24, 167, 223, 0.32);
+      background: rgba(24, 167, 223, 0.07);
+      border-radius: 7px;
+      color: var(--primary-dark);
+      font: inherit;
+      font-size: 0.79rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn-catalog-add:hover {
+      background: rgba(24, 167, 223, 0.14);
+      border-color: var(--primary);
+    }
+
+    .catalog-empty {
+      padding: 36px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.65;
+    }
+
+    .catalog-empty-icon {
+      font-size: 2.2rem;
+      opacity: 0.32;
+      margin-bottom: 12px;
+    }
+
+    .modal-footer {
+      padding: 11px 20px;
+      border-top: 1px solid var(--line);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.77rem;
+      color: var(--muted);
+    }
+
+    .modal-footer i { opacity: 0.6; }
+
+    .modal-link-btn {
+      background: none;
+      border: none;
+      color: var(--primary-dark);
+      font: inherit;
+      font-size: 0.77rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+    }
+
     /* ── MAGIC SPARKLE ── */
     @keyframes spark-burst {
       0% {
@@ -762,6 +1410,10 @@
       .school-badge {
         display: none;
       }
+
+      .topbar-dalton-logo {
+        height: 32px;
+      }
     }
   </style>
 </head>
@@ -769,9 +1421,11 @@
   <div class="app-shell">
     <header class="topbar">
       <div class="topbar-left">
-        <button class="burger" type="button" aria-label="Menu">
-          <i class="fa-solid fa-folder-open"></i>
-        </button>
+        <img
+          class="topbar-dalton-logo"
+          src="https://daltondenhaag.nl/wp-content/uploads/2018/02/cropped-logo.png"
+          alt="Dalton Den Haag logo"
+        >
         <div class="topbar-title">
           <div class="topbar-eyebrow">Dalton Den Haag</div>
           <h1>Applicatiebibliotheek</h1>
@@ -789,22 +1443,20 @@
     </header>
 
     <aside class="sidebar" aria-label="Navigatie">
-      <button class="side-btn active" type="button" aria-label="Favorieten">
+      <button class="side-btn active" id="sideAppsBtn" type="button" aria-label="Applicaties">
         <i class="fa-regular fa-paper-plane"></i>
         <span class="side-label">Apps</span>
       </button>
-      <button class="side-btn" type="button" aria-label="Collecties">
-        <i class="fa-regular fa-clone"></i>
-        <span class="side-label">Sets</span>
-      </button>
       <div class="side-divider"></div>
-      <button class="side-btn" type="button" aria-label="Instellingen">
+      <button class="side-btn" id="sideSettingsBtn" type="button" aria-label="Instellingen">
         <i class="fa-solid fa-gear"></i>
         <span class="side-label">Config</span>
       </button>
     </aside>
 
     <main class="main">
+    <!-- ── APPS VIEW ── -->
+    <div id="appsView">
       <div class="content-head">
         <div class="content-head-left">
           <div class="content-head-eyebrow">Favorieten</div>
@@ -828,11 +1480,6 @@
               <span>Lijst</span>
             </button>
           </div>
-          <button class="tool-btn" type="button" title="Filter">
-            <i class="fa-solid fa-sliders"></i>
-            <span>Filter</span>
-            <span class="badge">1</span>
-          </button>
           <button id="refreshBtn" class="tool-btn" type="button" title="Verversen">
             <i class="fa-solid fa-rotate-right"></i>
             <span>Ververs</span>
@@ -842,6 +1489,96 @@
 
       <section id="cardsGrid" class="grid" aria-live="polite"></section>
       <div id="emptyState" class="empty">Geen applicaties gevonden voor deze zoekopdracht.</div>
+    </div>
+
+    <!-- ── SETTINGS VIEW ── -->
+    <div id="settingsView" hidden>
+      <div class="settings-head">
+        <div class="settings-head-left">
+          <div class="content-head-eyebrow">Beheer</div>
+          <h2 style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--ink);margin:0;line-height:1;">Instellingen</h2>
+        </div>
+        <button id="backBtn" class="settings-back" type="button">
+          <i class="fa-solid fa-arrow-left"></i>
+          Terug naar applicaties
+        </button>
+      </div>
+
+      <div class="settings-layout">
+
+        <!-- Left: app list -->
+        <section class="settings-panel">
+          <div class="settings-panel-head">
+            <div class="settings-panel-eyebrow">Overzicht</div>
+            <h3>Applicaties</h3>
+            <p>Zet tegels aan of uit. Eigen tegels kun je ook verwijderen.</p>
+          </div>
+          <div id="settingsAppList" class="settings-app-list"></div>
+        </section>
+
+        <!-- Right: add form -->
+        <section class="settings-panel">
+          <div class="settings-panel-head">
+            <div class="settings-panel-eyebrow">Toevoegen</div>
+            <h3>Nieuwe tegel</h3>
+            <p>Maak een eigen applicatietegel aan.</p>
+          </div>
+
+          <form id="addAppForm" class="add-form" novalidate>
+            <div class="form-row">
+              <label class="form-label" for="newAppName">Naam <span class="required">*</span></label>
+              <input id="newAppName" class="form-input" type="text" placeholder="bijv. Microsoft Forms" required>
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="newAppUrl">URL <span class="required">*</span></label>
+              <input id="newAppUrl" class="form-input" type="url" placeholder="https://…" required>
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="newAppSubtitle">Categorie</label>
+              <input id="newAppSubtitle" class="form-input" type="text" placeholder="bijv. Microsoft 365">
+            </div>
+
+            <div class="form-row">
+              <label class="form-label">Icoon uploaden</label>
+              <div class="icon-upload-area">
+                <div class="icon-preview" id="iconPreview">
+                  <i class="fa-solid fa-image"></i>
+                </div>
+                <div class="icon-upload-info">
+                  <button type="button" class="icon-upload-btn" id="iconUploadBtn">
+                    <i class="fa-solid fa-upload"></i>
+                    Afbeelding kiezen
+                  </button>
+                  <span class="icon-upload-hint">PNG, JPG, SVG — max 2 MB</span>
+                </div>
+                <input id="iconFileInput" type="file" accept="image/*" hidden>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label class="form-label">Achtergrondkleur <span class="form-label-hint">(als er geen icoon is)</span></label>
+              <div class="color-row">
+                <input id="newAppColor1" type="color" class="color-swatch" value="#18a7df" title="Startkleur">
+                <i class="fa-solid fa-arrow-right" style="color:var(--sand);font-size:0.75rem;flex-shrink:0"></i>
+                <input id="newAppColor2" type="color" class="color-swatch" value="#116e95" title="Eindkleur">
+                <div class="color-preview" id="colorPreview" title="Kleurvoorvertoning"></div>
+                <input id="newAppFallback" class="form-input form-input-sm" type="text" maxlength="3" placeholder="AB" title="Initialen (max 3)">
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-add">
+                <i class="fa-solid fa-plus"></i>
+                Tegel toevoegen
+              </button>
+            </div>
+            <div id="formError" class="form-msg form-error" hidden></div>
+            <div id="formSuccess" class="form-msg form-success" hidden></div>
+          </form>
+        </section>
+
+      </div>
+    </div>
     </main>
   </div>
 
@@ -849,12 +1586,34 @@
     <i class="fa-solid fa-plus"></i>
   </button>
 
+  <!-- ── CATALOG MODAL ── -->
+  <div id="addFromCatalogModal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-label="Applicatie toevoegen">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <div class="settings-panel-eyebrow">Bibliotheek</div>
+          <h3>Applicatie toevoegen</h3>
+        </div>
+        <button class="modal-close" id="closeAddModal" type="button" aria-label="Sluiten">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="catalogList" class="catalog-list"></div>
+      <div class="modal-footer">
+        <i class="fa-solid fa-circle-info"></i>
+        Nieuwe app aanmaken?
+        <button type="button" class="modal-link-btn" id="goToSettingsFromModal">Ga naar Instellingen</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const apps = [
       {
         name: "SharePoint",
         url: "https://www.office.com/launch/sharepoint",
         logo: "https://cdn.simpleicons.org/microsoftsharepoint/127d95",
+        fallback: "SP", color: "linear-gradient(135deg, #038387, #005764)",
         subtitle: "Microsoft 365"
       },
       {
@@ -869,6 +1628,7 @@
         name: "Google Drive",
         url: "https://drive.google.com/",
         logo: "https://cdn.simpleicons.org/googledrive/4285F4",
+        fallback: "GD", color: "linear-gradient(135deg, #4285F4, #34a853)",
         subtitle: "Google Workspace"
       },
       {
@@ -889,18 +1649,21 @@
         name: "Google Classroom",
         url: "https://classroom.google.com/",
         logo: "https://cdn.simpleicons.org/googleclassroom/25A667",
+        fallback: "GC", color: "linear-gradient(135deg, #25A667, #1a7a4e)",
         subtitle: "Google Workspace"
       },
       {
         name: "Google Earth",
         url: "https://earth.google.com/web/",
         logo: "https://cdn.simpleicons.org/googleearth/4285F4",
+        fallback: "GE", color: "linear-gradient(135deg, #4285F4, #34a853)",
         subtitle: "Google"
       },
       {
         name: "Kahoot",
         url: "https://kahoot.com/",
         logo: "https://cdn.simpleicons.org/kahoot/5C2D91",
+        fallback: "KA", color: "linear-gradient(135deg, #5C2D91, #7e3ec2)",
         subtitle: "Quizplatform"
       },
       {
@@ -914,12 +1677,14 @@
         name: "OneDrive",
         url: "https://www.office.com/launch/onedrive",
         logo: "https://cdn.simpleicons.org/microsoftonedrive/1573d6",
+        fallback: "OD", color: "linear-gradient(135deg, #0f5fa8, #1573d6)",
         subtitle: "Microsoft 365"
       },
       {
         name: "Google Presentaties (Slides)",
         url: "https://slides.google.com/",
         logo: "https://cdn.simpleicons.org/googleslides/FBBC04",
+        fallback: "GS", color: "linear-gradient(135deg, #e09600, #FBBC04)",
         subtitle: "Google Workspace"
       },
       {
@@ -933,12 +1698,14 @@
         name: "Outlook - Office 365",
         url: "https://outlook.office.com/",
         logo: "https://cdn.simpleicons.org/microsoftoutlook/0a66c2",
+        fallback: "OL", color: "linear-gradient(135deg, #0057a8, #0078D4)",
         subtitle: "Microsoft 365"
       },
       {
         name: "Padlet",
         url: "https://padlet.com/",
         logo: "https://cdn.simpleicons.org/padlet/000000",
+        fallback: "PD", color: "linear-gradient(135deg, #333333, #555555)",
         subtitle: "Samenwerken"
       },
       {
@@ -952,6 +1719,7 @@
         name: "Excel - Office 365",
         url: "https://www.office.com/launch/excel",
         logo: "https://cdn.simpleicons.org/microsoftexcel/217346",
+        fallback: "XL", color: "linear-gradient(135deg, #185c37, #217346)",
         subtitle: "Microsoft 365"
       },
       {
@@ -980,6 +1748,7 @@
         name: "PowerPoint - Office 365",
         url: "https://www.office.com/launch/powerpoint",
         logo: "https://cdn.simpleicons.org/microsoftpowerpoint/B7472A",
+        fallback: "PP", color: "linear-gradient(135deg, #a3310e, #B7472A)",
         subtitle: "Microsoft 365"
       },
       {
@@ -1009,12 +1778,14 @@
         name: "Google Keep",
         url: "https://keep.google.com/",
         logo: "https://cdn.simpleicons.org/googlekeep/FFBB00",
+        fallback: "GK", color: "linear-gradient(135deg, #e09600, #FFBB00)",
         subtitle: "Google Workspace"
       },
       {
         name: "Google Docs",
         url: "https://docs.google.com/",
         logo: "https://cdn.simpleicons.org/googledocs/4285F4",
+        fallback: "DO", color: "linear-gradient(135deg, #1a6cf5, #4285F4)",
         subtitle: "Google Workspace"
       },
       {
@@ -1028,18 +1799,21 @@
         name: "my.SketchUp",
         url: "https://my.sketchup.com/",
         logo: "https://cdn.simpleicons.org/sketchup/EF2D22",
+        fallback: "SU", color: "linear-gradient(135deg, #c41f15, #EF2D22)",
         subtitle: "3D ontwerpen"
       },
       {
         name: "Quizlet",
         url: "https://quizlet.com/",
         logo: "https://cdn.simpleicons.org/quizlet/4255FF",
+        fallback: "QZ", color: "linear-gradient(135deg, #2b3df5, #4255FF)",
         subtitle: "Oefenen"
       },
       {
         name: "Google Forms",
         url: "https://forms.google.com/",
         logo: "https://cdn.simpleicons.org/googleforms/7248B9",
+        fallback: "GF", color: "linear-gradient(135deg, #5f3a9e, #7248B9)",
         subtitle: "Google Workspace"
       },
       {
@@ -1075,6 +1849,7 @@
         name: "Google Spreadsheets",
         url: "https://sheets.google.com/",
         logo: "https://cdn.simpleicons.org/googlesheets/34A853",
+        fallback: "GH", color: "linear-gradient(135deg, #27833f, #34A853)",
         subtitle: "Google Workspace"
       },
       {
@@ -1088,6 +1863,7 @@
         name: "Word - Office 365",
         url: "https://www.office.com/launch/word",
         logo: "https://cdn.simpleicons.org/microsoftword/185ABD",
+        fallback: "WD", color: "linear-gradient(135deg, #1547a0, #185ABD)",
         subtitle: "Microsoft 365"
       },
       {
@@ -1109,12 +1885,14 @@
         name: "Microsoft Teams",
         url: "https://teams.microsoft.com/",
         logo: "https://cdn.simpleicons.org/microsoftteams/6264A7",
+        fallback: "TM", color: "linear-gradient(135deg, #4a4c9e, #6264A7)",
         subtitle: "Microsoft 365"
       },
       {
         name: "Azure",
         url: "https://portal.azure.com/",
         logo: "https://cdn.simpleicons.org/microsoftazure/0078D4",
+        fallback: "AZ", color: "linear-gradient(135deg, #005ba1, #0078D4)",
         subtitle: "Microsoft"
       }
     ];
@@ -1284,6 +2062,15 @@
         img.src = app.logo;
         img.alt = `${app.name} logo`;
         img.loading = "lazy";
+        img.onerror = function () {
+          this.remove();
+          const fb = document.createElement("div");
+          fb.className = "thumb-fallback";
+          fb.textContent = app.fallback || app.name.slice(0, 2).toUpperCase();
+          fb.style.background = app.color || "linear-gradient(135deg, #4c8bf5, #18a7df)";
+          fb.style.color = app.textColor || "#ffffff";
+          thumb.appendChild(fb);
+        };
         thumb.appendChild(img);
         return thumb;
       }
@@ -1597,9 +2384,38 @@
       }
     }
 
+    /* ── Plus tile ── */
+    function createPlusTile() {
+      const tile = document.createElement("div");
+      tile.className = "card plus-tile";
+      tile.setAttribute("role", "button");
+      tile.setAttribute("tabindex", "0");
+      tile.setAttribute("aria-label", "Applicatie toevoegen aan overzicht");
+      tile.addEventListener("click", openCatalogModal);
+      tile.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCatalogModal(); }
+      });
+
+      const thumb = document.createElement("div");
+      thumb.className = "card-thumb";
+      const icon = document.createElement("div");
+      icon.className = "plus-tile-icon";
+      icon.innerHTML = '<i class="fa-solid fa-plus"></i>';
+      thumb.appendChild(icon);
+
+      const label = document.createElement("div");
+      label.className = "card-name plus-tile-label";
+      label.textContent = "Toevoegen";
+
+      tile.appendChild(thumb);
+      tile.appendChild(label);
+      return tile;
+    }
+
     function renderCards(items) {
       cardsGrid.innerHTML = "";
       items.forEach((app) => cardsGrid.appendChild(createCard(app)));
+      cardsGrid.appendChild(createPlusTile());
       emptyState.style.display = items.length ? "none" : "block";
     }
 
@@ -1627,7 +2443,392 @@
     listViewBtn.addEventListener("click", () => setView("list"));
     refreshBtn.addEventListener("click", () => window.location.reload());
 
+    /* ══════════════════════════════════════════
+       CATALOG MODAL — voeg bestaande apps toe
+    ══════════════════════════════════════════ */
+    function openCatalogModal() {
+      renderCatalogList();
+      document.getElementById("addFromCatalogModal").hidden = false;
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeCatalogModal() {
+      document.getElementById("addFromCatalogModal").hidden = true;
+      document.body.style.overflow = "";
+    }
+
+    document.getElementById("closeAddModal").addEventListener("click", closeCatalogModal);
+    document.getElementById("addFromCatalogModal").addEventListener("click", e => {
+      if (e.target === e.currentTarget) closeCatalogModal();
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && !document.getElementById("addFromCatalogModal").hidden) closeCatalogModal();
+    });
+    document.getElementById("goToSettingsFromModal").addEventListener("click", () => {
+      closeCatalogModal();
+      openSettings();
+    });
+
+    function makeCatalogThumb(app) {
+      const wrap = document.createElement("div");
+      wrap.className = "catalog-item-thumb";
+      const src = app.logo || app._uploadedLogo;
+      if (src) {
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = app.name;
+        img.onerror = () => { img.remove(); wrap.appendChild(makeColorThumb(app)); };
+        wrap.appendChild(img);
+      } else {
+        wrap.appendChild(makeColorThumb(app));
+      }
+      return wrap;
+    }
+
+    function renderCatalogList() {
+      const list   = document.getElementById("catalogList");
+      list.innerHTML = "";
+
+      const hidden = getAllApps().filter(a => hiddenAppIds.has(a.id));
+
+      if (hidden.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "catalog-empty";
+        empty.innerHTML = `
+          <div class="catalog-empty-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <strong>Alle applicaties zijn al zichtbaar.</strong><br>
+          Verberg apps via Instellingen om ze hier te kunnen toevoegen.`;
+        list.appendChild(empty);
+        return;
+      }
+
+      hidden.forEach(app => {
+        const item = document.createElement("div");
+        item.className = "catalog-item";
+
+        item.appendChild(makeCatalogThumb(app));
+
+        const info = document.createElement("div");
+        info.className = "catalog-item-info";
+        const nm = document.createElement("div");
+        nm.className = "catalog-item-name";
+        nm.textContent = app.name;
+        const sub = document.createElement("div");
+        sub.className = "catalog-item-sub";
+        sub.textContent = app.subtitle || app.url;
+        info.appendChild(nm);
+        info.appendChild(sub);
+        item.appendChild(info);
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn-catalog-add";
+        btn.innerHTML = '<i class="fa-solid fa-plus"></i> Toevoegen';
+        btn.addEventListener("click", () => {
+          hiddenAppIds.delete(app.id);
+          saveHiddenApps();
+          rebuildOrderedApps();
+          filterCards();
+          item.style.transition = "opacity 0.2s, transform 0.2s";
+          item.style.opacity = "0";
+          item.style.transform = "translateX(12px)";
+          setTimeout(() => {
+            item.remove();
+            if (list.querySelectorAll(".catalog-item").length === 0) {
+              const empty = document.createElement("div");
+              empty.className = "catalog-empty";
+              empty.innerHTML = `
+                <div class="catalog-empty-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <strong>Alle applicaties zijn nu zichtbaar!</strong>`;
+              list.appendChild(empty);
+            }
+          }, 200);
+        });
+
+        item.appendChild(btn);
+        list.appendChild(item);
+      });
+    }
+
+    /* ══════════════════════════════════════════
+       SETTINGS — custom apps & visibility
+    ══════════════════════════════════════════ */
+    const customAppsKey  = `${storageNamespace}:custom`;
+    const hiddenAppsKey  = `${storageNamespace}:hidden`;
+
+    let customApps   = [];
+    let hiddenAppIds = new Set();
+    let uploadedIconData = null;
+
+    /* ── Storage helpers ── */
+    function loadCustomApps() {
+      try {
+        const s = localStorage.getItem(customAppsKey);
+        if (s) customApps = JSON.parse(s);
+      } catch (_) { customApps = []; }
+    }
+
+    function saveCustomApps() {
+      localStorage.setItem(customAppsKey, JSON.stringify(customApps));
+    }
+
+    function loadHiddenApps() {
+      try {
+        const s = localStorage.getItem(hiddenAppsKey);
+        if (s) hiddenAppIds = new Set(JSON.parse(s));
+      } catch (_) { hiddenAppIds = new Set(); }
+    }
+
+    function saveHiddenApps() {
+      localStorage.setItem(hiddenAppsKey, JSON.stringify([...hiddenAppIds]));
+    }
+
+    /* ── Merge all apps (built-in + custom, respecting hidden) ── */
+    function getAllApps() {
+      const builtIn = apps.map((a, i) => ({ ...a, id: a.id || `app-${i + 1}`, _custom: false }));
+      const own     = customApps.map(a => ({ ...a, _custom: true }));
+      return [...builtIn, ...own];
+    }
+
+    function rebuildOrderedApps() {
+      const all     = getAllApps();
+      const visible = all.filter(a => !hiddenAppIds.has(a.id));
+      const existIds = new Set(orderedApps.map(a => a.id));
+      const newOnes  = visible.filter(a => !existIds.has(a.id));
+      orderedApps = [
+        ...orderedApps.filter(a => !hiddenAppIds.has(a.id) && all.some(b => b.id === a.id)),
+        ...newOnes
+      ];
+    }
+
+    /* ── View switching ── */
+    function openSettings() {
+      document.getElementById("appsView").hidden     = true;
+      document.getElementById("settingsView").hidden = false;
+      document.querySelector(".fab").hidden          = true;
+      document.getElementById("sideAppsBtn").classList.remove("active");
+      document.getElementById("sideSettingsBtn").classList.add("active");
+      renderSettingsAppList();
+      updateColorPreview();
+    }
+
+    function closeSettings() {
+      document.getElementById("settingsView").hidden = true;
+      document.getElementById("appsView").hidden     = false;
+      document.querySelector(".fab").hidden          = false;
+      document.getElementById("sideSettingsBtn").classList.remove("active");
+      document.getElementById("sideAppsBtn").classList.add("active");
+      rebuildOrderedApps();
+      filterCards();
+    }
+
+    document.getElementById("sideSettingsBtn").addEventListener("click", openSettings);
+    document.getElementById("backBtn").addEventListener("click", closeSettings);
+
+    /* ── Settings app list renderer ── */
+    function makeSettingsThumb(app) {
+      const wrap = document.createElement("div");
+      wrap.className = "settings-app-thumb";
+      const src = app.logo || app._uploadedLogo;
+      if (src) {
+        const img = document.createElement("img");
+        img.src = src;
+        img.onerror = () => { img.remove(); wrap.appendChild(makeColorThumb(app)); };
+        wrap.appendChild(img);
+      } else {
+        wrap.appendChild(makeColorThumb(app));
+      }
+      return wrap;
+    }
+
+    function makeColorThumb(app) {
+      const el = document.createElement("div");
+      el.style.cssText = [
+        "width:100%", "height:100%", "display:grid", "place-items:center",
+        `background:${app.color || "linear-gradient(135deg,#4c8bf5,#18a7df)"}`,
+        `color:${app.textColor || "#fff"}`,
+        "font-family:'Cormorant Garamond',serif",
+        "font-weight:700", "font-size:0.82rem", "border-radius:8px"
+      ].join(";");
+      el.textContent = app.fallback || app.name.slice(0, 2).toUpperCase();
+      return el;
+    }
+
+    function renderSettingsAppList() {
+      const list = document.getElementById("settingsAppList");
+      list.innerHTML = "";
+      getAllApps().forEach(app => {
+        const item = document.createElement("div");
+        item.className = "settings-app-item" + (hiddenAppIds.has(app.id) ? " is-hidden" : "");
+
+        item.appendChild(makeSettingsThumb(app));
+
+        const info = document.createElement("div");
+        info.className = "settings-app-info";
+        const nm = document.createElement("div");
+        nm.className = "settings-app-name";
+        nm.textContent = app.name;
+        const ur = document.createElement("div");
+        ur.className = "settings-app-url";
+        ur.textContent = app.url;
+        info.appendChild(nm);
+        info.appendChild(ur);
+        item.appendChild(info);
+
+        if (app._custom) {
+          const tag = document.createElement("span");
+          tag.className = "custom-tag";
+          tag.textContent = "Eigen";
+          item.appendChild(tag);
+        }
+
+        /* Toggle */
+        const lbl = document.createElement("label");
+        lbl.className = "toggle-switch";
+        lbl.title = hiddenAppIds.has(app.id) ? "Verborgen" : "Zichtbaar";
+        const chk = document.createElement("input");
+        chk.type = "checkbox";
+        chk.checked = !hiddenAppIds.has(app.id);
+        chk.addEventListener("change", () => {
+          if (chk.checked) { hiddenAppIds.delete(app.id); item.classList.remove("is-hidden"); }
+          else             { hiddenAppIds.add(app.id);    item.classList.add("is-hidden"); }
+          saveHiddenApps();
+        });
+        const track = document.createElement("span");
+        track.className = "toggle-track";
+        lbl.appendChild(chk);
+        lbl.appendChild(track);
+        item.appendChild(lbl);
+
+        /* Delete (custom only) */
+        if (app._custom) {
+          const del = document.createElement("button");
+          del.className = "delete-app-btn";
+          del.type = "button";
+          del.title = "Verwijderen";
+          del.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+          del.addEventListener("click", () => {
+            if (!confirm(`"${app.name}" definitief verwijderen?`)) return;
+            customApps   = customApps.filter(a => a.id !== app.id);
+            hiddenAppIds.delete(app.id);
+            saveCustomApps();
+            saveHiddenApps();
+            renderSettingsAppList();
+          });
+          item.appendChild(del);
+        }
+
+        list.appendChild(item);
+      });
+    }
+
+    /* ── Color preview ── */
+    function updateColorPreview() {
+      const c1 = document.getElementById("newAppColor1").value;
+      const c2 = document.getElementById("newAppColor2").value;
+      const grad = `linear-gradient(135deg, ${c1}, ${c2})`;
+      document.getElementById("colorPreview").style.background = grad;
+      if (!uploadedIconData) {
+        const fb  = document.getElementById("newAppFallback").value || "AB";
+        const pre = document.getElementById("iconPreview");
+        pre.style.background = grad;
+        pre.style.color      = "#fff";
+        pre.innerHTML = `<span style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.1rem;letter-spacing:.04em">${fb.slice(0,3).toUpperCase()}</span>`;
+      }
+    }
+
+    document.getElementById("newAppColor1").addEventListener("input", updateColorPreview);
+    document.getElementById("newAppColor2").addEventListener("input", updateColorPreview);
+    document.getElementById("newAppFallback").addEventListener("input", updateColorPreview);
+
+    /* ── Icon upload ── */
+    document.getElementById("iconUploadBtn").addEventListener("click", () => {
+      document.getElementById("iconFileInput").click();
+    });
+
+    document.getElementById("iconFileInput").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        showFormMsg("error", "Afbeelding is te groot (max 2 MB).");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = ev => {
+        uploadedIconData = ev.target.result;
+        const pre = document.getElementById("iconPreview");
+        pre.innerHTML        = "";
+        pre.style.background = "none";
+        pre.style.color      = "";
+        const img = document.createElement("img");
+        img.src = uploadedIconData;
+        img.style.cssText = "width:100%;height:100%;object-fit:contain;border-radius:8px";
+        pre.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    /* ── Add app form ── */
+    document.getElementById("addAppForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const name     = document.getElementById("newAppName").value.trim();
+      const url      = document.getElementById("newAppUrl").value.trim();
+      const subtitle = document.getElementById("newAppSubtitle").value.trim();
+      const c1       = document.getElementById("newAppColor1").value;
+      const c2       = document.getElementById("newAppColor2").value;
+      const fallback = (document.getElementById("newAppFallback").value.trim().slice(0, 3) || name.slice(0, 2)).toUpperCase();
+
+      if (!name)                          { showFormMsg("error", "Vul een naam in."); return; }
+      if (!url || !url.startsWith("http")){ showFormMsg("error", "Vul een geldige URL in (begin met https://)."); return; }
+
+      const newApp = {
+        id:       `custom-${Date.now()}`,
+        name,
+        url,
+        subtitle: subtitle || "Eigen tegel",
+        fallback,
+        color:    `linear-gradient(135deg, ${c1}, ${c2})`,
+        _custom:  true
+      };
+      if (uploadedIconData) newApp.logo = uploadedIconData;
+
+      customApps.push(newApp);
+      saveCustomApps();
+      showFormMsg("success", `✓ "${name}" is toegevoegd aan de bibliotheek!`);
+
+      /* Reset form */
+      e.target.reset();
+      uploadedIconData = null;
+      const pre = document.getElementById("iconPreview");
+      pre.innerHTML        = '<i class="fa-solid fa-image"></i>';
+      pre.style.background = "";
+      pre.style.color      = "";
+      document.getElementById("newAppColor1").value = "#18a7df";
+      document.getElementById("newAppColor2").value = "#116e95";
+      updateColorPreview();
+      renderSettingsAppList();
+      setTimeout(() => { document.getElementById("formSuccess").hidden = true; }, 4000);
+    });
+
+    function showFormMsg(type, msg) {
+      const err = document.getElementById("formError");
+      const suc = document.getElementById("formSuccess");
+      if (type === "error") {
+        err.textContent = msg; err.hidden = false;
+        suc.hidden = true;
+      } else {
+        suc.textContent = msg; suc.hidden = false;
+        err.hidden = true;
+      }
+    }
+
+    /* ══════════════════════════════════════════
+       INIT
+    ══════════════════════════════════════════ */
+    loadCustomApps();
+    loadHiddenApps();
     loadStoredOrder();
+    rebuildOrderedApps();
     filterCards();
     setView(localStorage.getItem(viewStorageKey) || "grid");
   </script>
