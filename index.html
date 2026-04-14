@@ -639,31 +639,6 @@
       letter-spacing: 0.02em;
     }
 
-    /* ── FAB ── */
-    .fab {
-      position: fixed;
-      right: 28px;
-      bottom: 24px;
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
-      border: none;
-      background: linear-gradient(135deg, var(--brick), #d4896f);
-      color: #fff;
-      box-shadow: 0 14px 28px rgba(181, 111, 89, 0.32);
-      font-size: 1.4rem;
-      display: grid;
-      place-items: center;
-      cursor: pointer;
-      z-index: 3;
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
-    }
-
-    .fab:hover {
-      transform: translateY(-2px) scale(1.04);
-      box-shadow: 0 18px 36px rgba(181, 111, 89, 0.40);
-    }
-
     /* ── SETTINGS VIEW ── */
     .settings-head {
       display: flex;
@@ -1054,19 +1029,24 @@
     }
 
     /* ── TOUCH BEST PRACTICES ── */
-    html {
-      /* Voorkom dubbel-tap zoom op knoppen */
+
+    /* Voorkom dubbel-tap zoom op knoppen maar NIET op de hele html
+       (want dat blokkeert ook scrollen via touch-action inheritance) */
+    button, .tool-btn, .view-toggle button, .side-btn {
       touch-action: manipulation;
     }
 
-    /* Minimale tap-target grootte (WCAG 2.5.5) */
-    button, a, [role="button"] {
-      min-height: 44px;
-      min-width: 44px;
+    /* Kaarten: scroll altijd toegestaan, alleen drag-modus blokkeert dit via JS */
+    .card {
+      touch-action: pan-y pan-x;
     }
 
     /* Geen highlight-flash op touch in Chrome/Android */
     * { -webkit-tap-highlight-color: transparent; }
+
+    /* Minimale tap-target grootte (WCAG 2.5.5) */
+    .side-btn { min-height: 44px; min-width: 44px; }
+    .tool-btn, .view-toggle button { min-height: 44px; }
 
     /* ── CARD DELETE BUTTON ── */
     .card-delete-btn {
@@ -1588,10 +1568,6 @@
               <span>Lijst</span>
             </button>
           </div>
-          <button id="refreshBtn" class="tool-btn" type="button" title="Verversen">
-            <i class="fa-solid fa-rotate-right"></i>
-            <span>Ververs</span>
-          </button>
         </div>
       </div>
 
@@ -1696,10 +1672,6 @@
     </div>
     </main>
   </div>
-
-  <button class="fab" type="button" title="Snel toevoegen" aria-label="Snel toevoegen">
-    <i class="fa-solid fa-plus"></i>
-  </button>
 
   <!-- ── CATALOG MODAL ── -->
   <div id="addFromCatalogModal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-label="Applicatie toevoegen">
@@ -2018,7 +1990,6 @@
     const emptyState = document.getElementById("emptyState");
     const gridViewBtn = document.getElementById("gridViewBtn");
     const listViewBtn = document.getElementById("listViewBtn");
-    const refreshBtn = document.getElementById("refreshBtn");
     const userAvatar = document.getElementById("userAvatar");
 
     /* ── SPARKLE ENGINE ── */
@@ -2126,9 +2097,8 @@
       ...app,
       id: app.id || `app-${index + 1}`
     }));
-    let dragState       = null;
-    let editMode        = false;   // iPhone-stijl: lang indrukken activeert bewerkmodus
-    let longPressTimer  = null;
+    let dragState = null;
+    let editMode  = false;
 
     function getInitials(name) {
       return (name || "")
@@ -2212,10 +2182,13 @@
       card.setAttribute("data-name", `${app.name} ${app.subtitle || ""}`.toLowerCase());
       card.setAttribute("aria-label", `${app.name} openen`);
       card.draggable = false;
+      // Pointer: lang-inhouden → editMode, drag in editMode (werkt met touch + stylus + muis)
       card.addEventListener("pointerdown",  onCardPointerDown);
+      // contextmenu = browser's eigen long-press detectie (meest betrouwbaar op Chromebook)
+      card.addEventListener("contextmenu",  onCardContextMenu);
+      // Click: laat browser <a target="_blank"> afhandelen
       card.addEventListener("click",        onCardClick);
       card.addEventListener("dragstart",    e => e.preventDefault());
-      card.addEventListener("contextmenu",  e => e.preventDefault()); // suppress long-press context menu on Android
 
       // ── Verwijder-knop (zichtbaar in editMode) ──
       const delBtn = document.createElement("button");
@@ -2309,22 +2282,37 @@
     }
 
     /* ══════════════════════════════════════════
-       EDIT MODE — iPhone-stijl lang indrukken
+       EDIT MODE  (lang indrukken → iPhone-stijl)
+       ─────────────────────────────────────────
+       Long-press: pointer events (werkt met touch, stylus én muis).
+       contextmenu = browser's eigen long-press (meest betrouwbaar op Chromebook).
+       Drag: alleen actief in editMode.
     ══════════════════════════════════════════ */
-    const LONG_PRESS_MS = 500;
 
-    const editModeBar = document.getElementById("editModeBar");
+    const LONG_PRESS_MS = 550;
+    const editModeBar   = document.getElementById("editModeBar");
 
-    function enterEditMode(triggerCard) {
+    // ── Long-press state ──
+    let lpTimer     = null;
+    let lpPointerId = null;
+    let lpStartX    = 0;
+    let lpStartY    = 0;
+    let lpCleanup   = null;
+
+    function cancelLongPress() {
+      if (lpTimer)   { clearTimeout(lpTimer); lpTimer = null; }
+      if (lpCleanup) { lpCleanup(); lpCleanup = null; }
+      lpPointerId = null;
+    }
+
+    function enterEditMode(card) {
       if (editMode) return;
       editMode = true;
       cardsGrid.classList.add("edit-mode");
       editModeBar.classList.add("is-visible");
-
       if (navigator.vibrate) navigator.vibrate(30);
-
-      if (triggerCard) {
-        const r = triggerCard.getBoundingClientRect();
+      if (card) {
+        const r = card.getBoundingClientRect();
         spawnSparkles(r.left + r.width / 2, r.top + r.height / 2);
       }
     }
@@ -2339,34 +2327,27 @@
 
     document.getElementById("exitEditModeBtn").addEventListener("click", exitEditMode);
 
-    // Klik buiten de grid verlaat editMode
+    // Tik buiten het raster → verlaat editMode
     document.addEventListener("pointerdown", e => {
       if (!editMode) return;
       if (!cardsGrid.contains(e.target) && !editModeBar.contains(e.target)) exitEditMode();
-    });
+    }, { passive: true });
 
-    /* ══════════════════════════════════════════
-       DRAG — alleen actief in editMode
-    ══════════════════════════════════════════ */
+    // ── Drag (alleen in editMode, via pointer events) ──
     function finishDrag(commitOrder) {
       if (!dragState) return;
-
       const { source, clone, placeholder, pointerId } = dragState;
 
-      document.removeEventListener("pointermove", onPointerMove);
-      document.removeEventListener("pointerup",   onPointerUp);
-      document.removeEventListener("pointercancel", onPointerUp);
+      document.removeEventListener("pointermove",   onDragMove);
+      document.removeEventListener("pointerup",     onDragEnd);
+      document.removeEventListener("pointercancel", onDragEnd);
 
-      if (source) {
-        source.classList.remove("is-drag-source");
-        if (source.releasePointerCapture && pointerId !== null) {
-          try { source.releasePointerCapture(pointerId); } catch (_) {}
-        }
-      }
+      source.classList.remove("is-drag-source");
+      source.style.touchAction = "";         // herstel touch-action
+      try { source.releasePointerCapture(pointerId); } catch (_) {}
+
       if (clone) clone.remove();
-      if (placeholder && placeholder.parentNode) {
-        placeholder.parentNode.replaceChild(source, placeholder);
-      }
+      if (placeholder?.parentNode) placeholder.parentNode.replaceChild(source, placeholder);
 
       if (commitOrder) syncOrderFromDom();
       else             filterCards();
@@ -2374,171 +2355,144 @@
       dragState = null;
     }
 
-    function updateClonePosition(clientX, clientY) {
-      if (!dragState?.clone) return;
+    function onDragMove(e) {
+      if (!dragState) return;
+      e.preventDefault();                    // blokkeer scroll alleen tijdens drag
+
+      if (!dragState.active) {
+        // Start de visuele drag
+        const { source } = dragState;
+        const rect = source.getBoundingClientRect();
+        const clone = source.cloneNode(true);
+        const ph    = document.createElement(source.tagName.toLowerCase());
+
+        clone.classList.add("drag-clone");
+        clone.removeAttribute("href");
+        clone.style.width  = `${rect.width}px`;
+        clone.style.height = `${rect.height}px`;
+
+        ph.className = `${source.className} card-placeholder`;
+        ph.removeAttribute("href");
+        ph.setAttribute("aria-hidden", "true");
+        ph.innerHTML = "";
+
+        source.classList.add("is-drag-source");
+        source.parentNode.replaceChild(ph, source);
+        document.body.appendChild(clone);
+        spawnSparkles(e.clientX, e.clientY);
+
+        dragState.active      = true;
+        dragState.clone       = clone;
+        dragState.placeholder = ph;
+        dragState.width       = rect.width;
+        dragState.height      = rect.height;
+      }
+
+      // Beweeg clone mee
       const { clone, offsetX, offsetY } = dragState;
-      clone.style.left   = `${clientX - offsetX}px`;
-      clone.style.top    = `${clientY - offsetY}px`;
-      clone.style.width  = `${dragState.width}px`;
-      clone.style.height = `${dragState.height}px`;
-    }
+      clone.style.left = `${e.clientX - offsetX}px`;
+      clone.style.top  = `${e.clientY - offsetY}px`;
 
-    function startDrag(clientX, clientY) {
-      if (!dragState || dragState.dragging) return;
-
-      const { source } = dragState;
-      const rect = source.getBoundingClientRect();
-      const clone = source.cloneNode(true);
-      const placeholder = document.createElement(source.tagName.toLowerCase());
-
-      clone.classList.add("drag-clone");
-      clone.removeAttribute("href");
-      clone.style.width  = `${rect.width}px`;
-      clone.style.height = `${rect.height}px`;
-
-      placeholder.className = `${source.className} card-placeholder`;
-      placeholder.removeAttribute("href");
-      placeholder.setAttribute("aria-hidden", "true");
-      placeholder.innerHTML = "";
-
-      source.classList.add("is-drag-source");
-      source.parentNode.replaceChild(placeholder, source);
-      document.body.appendChild(clone);
-
-      spawnSparkles(clientX, clientY);
-
-      dragState.dragging    = true;
-      dragState.clone       = clone;
-      dragState.placeholder = placeholder;
-      dragState.width       = rect.width;
-      dragState.height      = rect.height;
-      updateClonePosition(clientX, clientY);
-    }
-
-    function getInsertionTarget(clientX, clientY) {
-      const cards = Array.from(cardsGrid.querySelectorAll(".card:not(.plus-tile)")).filter(c =>
-        c !== dragState.source && !c.classList.contains("is-drag-source")
-      );
-      for (const card of cards) {
-        const rect = card.getBoundingClientRect();
-        const inRow = clientY >= rect.top && clientY <= rect.bottom;
-        if (inRow && clientX < rect.left + rect.width / 2) return { type: "before", element: card };
-        if (inRow && clientX <= rect.right)                return { type: "after",  element: card };
-        if (clientY < rect.top)                            return { type: "before", element: card };
+      // Herorder placeholder
+      const cards = Array.from(cardsGrid.querySelectorAll(".card:not(.plus-tile)"))
+        .filter(c => c !== dragState.source && !c.classList.contains("is-drag-source"));
+      let target = null;
+      for (const c of cards) {
+        const r  = c.getBoundingClientRect();
+        const my = e.clientY >= r.top && e.clientY <= r.bottom;
+        if (my && e.clientX < r.left + r.width / 2) { target = { before: true, el: c }; break; }
+        if (my && e.clientX <= r.right)              { target = { before: false, el: c }; break; }
+        if (e.clientY < r.top)                       { target = { before: true,  el: c }; break; }
       }
-      return null;
+      const ph = dragState.placeholder;
+      if (!target)               cardsGrid.appendChild(ph);
+      else if (target.before)    cardsGrid.insertBefore(ph, target.el);
+      else                       cardsGrid.insertBefore(ph, target.el.nextSibling);
+
+      spawnTrailSpark(e.clientX, e.clientY);
     }
 
-    function movePlaceholder(clientX, clientY) {
-      if (!dragState?.placeholder) return;
-      const target = getInsertionTarget(clientX, clientY);
-      const ph     = dragState.placeholder;
-      if (!target)                      { cardsGrid.appendChild(ph); return; }
-      if (target.type === "before")     { cardsGrid.insertBefore(ph, target.element); }
-      else                              { cardsGrid.insertBefore(ph, target.element.nextSibling); }
+    function onDragEnd() {
+      finishDrag(Boolean(dragState?.active));
     }
 
-    function onPointerMove(event) {
-      if (!dragState) return;
+    function onCardPointerDown(e) {
+      if (e.button !== 0) return;
+      const card = e.currentTarget;  // vastleggen vóór elke async operatie
 
-      // Als vinger te ver beweegt vóór drag klaar → annuleer long-press
-      if (longPressTimer) {
-        const dx = event.clientX - dragState.startX;
-        const dy = event.clientY - dragState.startY;
-        if (Math.hypot(dx, dy) > 8) {
-          clearTimeout(longPressTimer);
-          longPressTimer = null;
-          dragState = null;
-          return;
-        }
-        return; // Wacht op long-press, blokkeer scroll niet
-      }
-
-      if (!dragState.dragging) startDrag(event.clientX, event.clientY);
-      if (!dragState.dragging) return;
-
-      event.preventDefault(); // Scroll alleen blokkeren tijdens actieve drag
-      dragState.hasMoved = true;
-      updateClonePosition(event.clientX, event.clientY);
-      movePlaceholder(event.clientX, event.clientY);
-      spawnTrailSpark(event.clientX, event.clientY);
-    }
-
-    function onPointerUp() {
-      clearTimeout(longPressTimer);
-      longPressTimer = null;
-
-      if (!dragState) return;
-
-      // Was het alleen een tap (geen drag beweging)?
-      const wasDrag = dragState.dragging && dragState.hasMoved;
-      finishDrag(wasDrag);
-    }
-
-    function onCardPointerDown(event) {
-      // Rechter muisknop of stylus-knop → negeren
-      if (event.button !== 0) return;
-      // In listview: geen drag, gewoon navigatie
-      if (cardsGrid.classList.contains("list")) return;
-
-      const source = event.currentTarget;
-
-      // Sla startpositie op voor scroll-detectie
-      dragState = {
-        source,
-        pointerId: event.pointerId,
-        startX:  event.clientX,
-        startY:  event.clientY,
-        offsetX: event.clientX - source.getBoundingClientRect().left,
-        offsetY: event.clientY - source.getBoundingClientRect().top,
-        dragging:  false,
-        hasMoved:  false,
-        clone:     null,
-        placeholder: null,
-      };
-
-      document.addEventListener("pointermove",  onPointerMove);
-      document.addEventListener("pointerup",    onPointerUp);
-      document.addEventListener("pointercancel", onPointerUp);
-
-      if (!editMode) {
-        // Nog NIET in editMode: start long-press timer
-        longPressTimer = setTimeout(() => {
-          longPressTimer = null;
-          enterEditMode(source);
-
-          // ✨ Glow-pulse
-          source.classList.remove("card-grab-flash");
-          void source.offsetWidth;
-          source.classList.add("card-grab-flash");
-          source.addEventListener("animationend", () => source.classList.remove("card-grab-flash"), { once: true });
-
-          // Nu pointer capture pakken zodat drag soepel gaat
-          if (source.setPointerCapture) {
-            try { source.setPointerCapture(event.pointerId); } catch (_) {}
-          }
-        }, LONG_PRESS_MS);
-        // GEEN event.preventDefault() → scroll werkt normaal
-      } else {
-        // Al in editMode → direct drag klaar zetten
-        if (source.setPointerCapture) {
-          try { source.setPointerCapture(event.pointerId); } catch (_) {}
-        }
-        event.preventDefault();
-      }
-    }
-
-    function onCardClick(event) {
-      // In editMode: klik navigeert niet
       if (editMode) {
-        event.preventDefault();
-        event.stopPropagation();
+        // ── DRAG (herschikken in editMode) ──
+        if (cardsGrid.classList.contains("list")) return;
+        e.preventDefault();
+        card.style.touchAction = "none";
+
+        dragState = {
+          source:      card,
+          pointerId:   e.pointerId,
+          offsetX:     e.clientX - card.getBoundingClientRect().left,
+          offsetY:     e.clientY - card.getBoundingClientRect().top,
+          active:      false,
+          clone:       null,
+          placeholder: null,
+        };
+
+        try { card.releasePointerCapture(e.pointerId); } catch (_) {}
+        document.addEventListener("pointermove",   onDragMove,  { passive: false });
+        document.addEventListener("pointerup",     onDragEnd,   { passive: true  });
+        document.addEventListener("pointercancel", onDragEnd,   { passive: true  });
         return;
       }
-      // Altijd openen in nieuw tabblad (ook als browser target="_blank" blokkeert)
-      event.preventDefault();
-      const url = event.currentTarget.dataset.url || event.currentTarget.href;
-      if (url) window.open(url, "_blank", "noopener,noreferrer");
+
+      // ── LONG-PRESS DETECTIE (buiten editMode) ──
+      // Werkt met touch, stylus én muis. e.currentTarget is hier al veilig vastgelegd.
+      cancelLongPress();
+      lpPointerId = e.pointerId;
+      lpStartX    = e.clientX;
+      lpStartY    = e.clientY;
+
+      lpTimer = setTimeout(() => {
+        lpTimer = null;
+        cancelLongPress();
+        enterEditMode(card);
+      }, LONG_PRESS_MS);
+
+      // Annuleer bij bewegen of loslaten
+      const onLpMove = (ev) => {
+        if (ev.pointerId !== lpPointerId) return;
+        if (Math.hypot(ev.clientX - lpStartX, ev.clientY - lpStartY) > 10) cancelLongPress();
+      };
+      const onLpEnd = (ev) => {
+        if (ev.pointerId !== lpPointerId) return;
+        cancelLongPress();
+      };
+
+      document.addEventListener("pointermove",   onLpMove, { passive: true });
+      document.addEventListener("pointerup",     onLpEnd,  { passive: true });
+      document.addEventListener("pointercancel", onLpEnd,  { passive: true });
+
+      lpCleanup = () => {
+        document.removeEventListener("pointermove",   onLpMove);
+        document.removeEventListener("pointerup",     onLpEnd);
+        document.removeEventListener("pointercancel", onLpEnd);
+      };
+    }
+
+    // ── contextmenu = browser's eigen long-press (meest betrouwbaar op Chromebook/Android) ──
+    function onCardContextMenu(e) {
+      e.preventDefault();                 // voorkom context-menu popup
+      if (!editMode) {
+        cancelLongPress();                // stop evt. lopende timer
+        enterEditMode(e.currentTarget);
+      }
+    }
+
+    // ── Click: laat <a target="_blank"> gewoon werken ──
+    function onCardClick(e) {
+      if (editMode) {
+        e.preventDefault();   // in editMode: geen navigatie
+        e.stopPropagation();
+      }
+      // Buiten editMode: browser opent de link via target="_blank" zelf
     }
 
     /* ── Plus tile ── */
@@ -2598,7 +2552,6 @@
 
     gridViewBtn.addEventListener("click", () => setView("grid"));
     listViewBtn.addEventListener("click", () => setView("list"));
-    refreshBtn.addEventListener("click", () => window.location.reload());
 
     /* ══════════════════════════════════════════
        CATALOG MODAL — voeg bestaande apps toe
@@ -2762,7 +2715,6 @@
     function openSettings() {
       document.getElementById("appsView").hidden     = true;
       document.getElementById("settingsView").hidden = false;
-      document.querySelector(".fab").hidden          = true;
       document.getElementById("sideAppsBtn").classList.remove("active");
       document.getElementById("sideSettingsBtn").classList.add("active");
       renderSettingsAppList();
@@ -2772,7 +2724,6 @@
     function closeSettings() {
       document.getElementById("settingsView").hidden = true;
       document.getElementById("appsView").hidden     = false;
-      document.querySelector(".fab").hidden          = false;
       document.getElementById("sideSettingsBtn").classList.remove("active");
       document.getElementById("sideAppsBtn").classList.add("active");
       rebuildOrderedApps();
