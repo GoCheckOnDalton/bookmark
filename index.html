@@ -1036,9 +1036,13 @@
       touch-action: manipulation;
     }
 
-    /* Kaarten: scroll altijd toegestaan, alleen drag-modus blokkeert dit via JS */
+    /* Kaarten: scrollen normaal, in editMode alles blokkeren zodat drag werkt */
     .card {
       touch-action: pan-y pan-x;
+    }
+
+    .grid.edit-mode .card {
+      touch-action: none;
     }
 
     /* Geen highlight-flash op touch in Chrome/Android */
@@ -1385,69 +1389,6 @@
       text-decoration: underline;
     }
 
-    /* ── MAGIC SPARKLE ── */
-    @keyframes spark-burst {
-      0% {
-        opacity: 1;
-        transform: translate(0, 0) scale(1) rotate(0deg);
-      }
-      70% { opacity: 0.85; }
-      100% {
-        opacity: 0;
-        transform: translate(var(--tx), var(--ty)) scale(0.05) rotate(var(--r, 140deg));
-      }
-    }
-
-    @keyframes spark-ring {
-      0%   { transform: translate(-50%, -50%) scale(0); opacity: 0.9; }
-      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
-    }
-
-    @keyframes spark-glow-pulse {
-      0%   { box-shadow: 0 0 0 0 rgba(181,111,89,0.45); transform: scale(1); }
-      50%  { box-shadow: 0 0 0 8px rgba(181,111,89,0.0); transform: scale(1.04); }
-      100% { box-shadow: 0 0 0 0 rgba(181,111,89,0); transform: scale(1); }
-    }
-
-    .spark-particle {
-      position: fixed;
-      pointer-events: none;
-      z-index: 9999;
-      animation: spark-burst var(--dur) cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-    }
-
-    .spark-particle.dot {
-      border-radius: 50%;
-      background: var(--color);
-      box-shadow: 0 0 var(--glow) var(--color), 0 0 calc(var(--glow) * 2) var(--color);
-    }
-
-    .spark-particle.star {
-      background: var(--color);
-      filter: drop-shadow(0 0 3px var(--color));
-      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-    }
-
-    .spark-particle.line {
-      border-radius: 99px;
-      background: linear-gradient(90deg, var(--color), transparent);
-      box-shadow: 0 0 4px var(--color);
-      transform-origin: left center;
-    }
-
-    .spark-ring-el {
-      position: fixed;
-      pointer-events: none;
-      z-index: 9998;
-      border-radius: 50%;
-      border: 1.5px solid var(--ring-color, rgba(181,111,89,0.7));
-      animation: spark-ring 0.48s ease-out forwards;
-    }
-
-    .card-grab-flash {
-      animation: spark-glow-pulse 0.35s ease-out;
-    }
-
     /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
       body {
@@ -1568,11 +1509,15 @@
               <span>Lijst</span>
             </button>
           </div>
+          <button id="editModeBtn" class="tool-btn" type="button" title="Tegels herschikken">
+            <i class="fa-solid fa-arrows-up-down-left-right"></i>
+            <span>Bewerken</span>
+          </button>
         </div>
       </div>
 
       <div id="editModeBar" class="edit-mode-bar">
-        <span><i class="fa-solid fa-arrows-up-down-left-right"></i> Sleep om te herschikken · tik ✕ om te verbergen</span>
+        <span>Sleep tegels om te herschikken · tik <i class="fa-solid fa-xmark"></i> om te verbergen</span>
         <button class="edit-mode-close" id="exitEditModeBtn" type="button">
           <i class="fa-solid fa-check"></i> Klaar
         </button>
@@ -1992,107 +1937,6 @@
     const listViewBtn = document.getElementById("listViewBtn");
     const userAvatar = document.getElementById("userAvatar");
 
-    /* ── SPARKLE ENGINE ── */
-    const SPARK_PALETTE = [
-      { color: '#f5a623', glow: '7px' },
-      { color: '#ffd166', glow: '6px' },
-      { color: '#b56f59', glow: '5px' },
-      { color: '#e8a87c', glow: '5px' },
-      { color: '#18a7df', glow: '6px' },
-      { color: '#67d2d8', glow: '5px' },
-      { color: '#fff8ee', glow: '4px' },
-    ];
-
-    function spawnSpark(x, y, size, type, palette, tx, ty, dur, rot) {
-      const el = document.createElement('div');
-      el.className = `spark-particle ${type}`;
-      const { color, glow } = palette;
-      el.style.cssText = [
-        `left:${x - size / 2}px`,
-        `top:${y - size / 2}px`,
-        `width:${size}px`,
-        `height:${size}px`,
-        `--tx:${tx}px`,
-        `--ty:${ty}px`,
-        `--dur:${dur}ms`,
-        `--r:${rot}deg`,
-        `--color:${color}`,
-        `--glow:${glow}`,
-      ].join(';');
-      document.body.appendChild(el);
-      el.addEventListener('animationend', () => el.remove(), { once: true });
-    }
-
-    function spawnSparkRing(x, y, size, color) {
-      const ring = document.createElement('div');
-      ring.className = 'spark-ring-el';
-      ring.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px;--ring-color:${color}`;
-      document.body.appendChild(ring);
-      ring.addEventListener('animationend', () => ring.remove(), { once: true });
-    }
-
-    function spawnSparkles(x, y) {
-      // Two expanding rings
-      spawnSparkRing(x, y, 52, 'rgba(181,111,89,0.65)');
-      setTimeout(() => spawnSparkRing(x, y, 80, 'rgba(24,167,223,0.40)'), 80);
-
-      const count = 22;
-      for (let i = 0; i < count; i++) {
-        const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.7;
-        const dist  = 38 + Math.random() * 72;
-        const tx    = Math.cos(angle) * dist;
-        const ty    = Math.sin(angle) * dist;
-        const pal   = SPARK_PALETTE[Math.floor(Math.random() * SPARK_PALETTE.length)];
-        const dur   = 380 + Math.random() * 380;
-        const rot   = 80 + Math.random() * 280;
-
-        // Mix of shapes
-        const roll = Math.random();
-        if (roll < 0.55) {
-          // dot
-          const size = 2.5 + Math.random() * 5;
-          spawnSpark(x, y, size, 'dot', pal, tx, ty, dur, rot);
-        } else if (roll < 0.80) {
-          // star
-          const size = 5 + Math.random() * 6;
-          spawnSpark(x, y, size, 'star', pal, tx, ty, dur + 80, rot);
-        } else {
-          // short line streak
-          const w = 8 + Math.random() * 14;
-          const h = 2 + Math.random() * 2;
-          const el = document.createElement('div');
-          el.className = 'spark-particle line';
-          el.style.cssText = [
-            `left:${x}px`, `top:${y}px`,
-            `width:${w}px`, `height:${h}px`,
-            `--tx:${tx}px`, `--ty:${ty}px`,
-            `--dur:${Math.round(dur)}ms`,
-            `--r:${rot}deg`,
-            `--color:${pal.color}`,
-            `--glow:${pal.glow}`,
-            `transform-origin:left center`,
-            `transform:rotate(${Math.atan2(ty, tx) * 180 / Math.PI}deg)`,
-          ].join(';');
-          document.body.appendChild(el);
-          el.addEventListener('animationend', () => el.remove(), { once: true });
-        }
-      }
-    }
-
-    let trailThrottle = 0;
-    function spawnTrailSpark(x, y) {
-      const now = Date.now();
-      if (now - trailThrottle < 55) return;
-      trailThrottle = now;
-      const pal  = SPARK_PALETTE[Math.floor(Math.random() * 4)]; // warmer colours only
-      const size = 2 + Math.random() * 3;
-      const tx   = (Math.random() - 0.5) * 18;
-      const ty   = (Math.random() - 0.5) * 18;
-      const dur  = 280 + Math.random() * 200;
-      spawnSpark(x, y, size, 'dot', pal, tx, ty, dur, 0);
-    }
-    /* ── END SPARKLE ENGINE ── */
-
     let orderedApps = apps.map((app, index) => ({
       ...app,
       id: app.id || `app-${index + 1}`
@@ -2182,10 +2026,9 @@
       card.setAttribute("data-name", `${app.name} ${app.subtitle || ""}`.toLowerCase());
       card.setAttribute("aria-label", `${app.name} openen`);
       card.draggable = false;
-      // Pointer: lang-inhouden → editMode, drag in editMode (werkt met touch + stylus + muis)
+      // Drag (alleen actief in editMode)
       card.addEventListener("pointerdown",  onCardPointerDown);
-      // contextmenu = browser's eigen long-press detectie (meest betrouwbaar op Chromebook)
-      card.addEventListener("contextmenu",  onCardContextMenu);
+      card.addEventListener("contextmenu",  e => e.preventDefault());
       // Click: laat browser <a target="_blank"> afhandelen
       card.addEventListener("click",        onCardClick);
       card.addEventListener("dragstart",    e => e.preventDefault());
@@ -2282,39 +2125,19 @@
     }
 
     /* ══════════════════════════════════════════
-       EDIT MODE  (lang indrukken → iPhone-stijl)
-       ─────────────────────────────────────────
-       Long-press: pointer events (werkt met touch, stylus én muis).
-       contextmenu = browser's eigen long-press (meest betrouwbaar op Chromebook).
-       Drag: alleen actief in editMode.
+       EDIT MODE — knoppen "Bewerken" / "Klaar"
+       Drag via pointer events (touch + muis + stylus)
     ══════════════════════════════════════════ */
 
-    const LONG_PRESS_MS = 550;
-    const editModeBar   = document.getElementById("editModeBar");
+    const editModeBar = document.getElementById("editModeBar");
 
-    // ── Long-press state ──
-    let lpTimer     = null;
-    let lpPointerId = null;
-    let lpStartX    = 0;
-    let lpStartY    = 0;
-    let lpCleanup   = null;
-
-    function cancelLongPress() {
-      if (lpTimer)   { clearTimeout(lpTimer); lpTimer = null; }
-      if (lpCleanup) { lpCleanup(); lpCleanup = null; }
-      lpPointerId = null;
-    }
-
-    function enterEditMode(card) {
+    function enterEditMode() {
       if (editMode) return;
       editMode = true;
       cardsGrid.classList.add("edit-mode");
       editModeBar.classList.add("is-visible");
+      document.getElementById("editModeBtn").classList.add("is-active");
       if (navigator.vibrate) navigator.vibrate(30);
-      if (card) {
-        const r = card.getBoundingClientRect();
-        spawnSparkles(r.left + r.width / 2, r.top + r.height / 2);
-      }
     }
 
     function exitEditMode() {
@@ -2322,18 +2145,16 @@
       editMode = false;
       cardsGrid.classList.remove("edit-mode");
       editModeBar.classList.remove("is-visible");
+      document.getElementById("editModeBtn").classList.remove("is-active");
       if (dragState) finishDrag(false);
     }
 
+    document.getElementById("editModeBtn").addEventListener("click", () => {
+      editMode ? exitEditMode() : enterEditMode();
+    });
     document.getElementById("exitEditModeBtn").addEventListener("click", exitEditMode);
 
-    // Tik buiten het raster → verlaat editMode
-    document.addEventListener("pointerdown", e => {
-      if (!editMode) return;
-      if (!cardsGrid.contains(e.target) && !editModeBar.contains(e.target)) exitEditMode();
-    }, { passive: true });
-
-    // ── Drag (alleen in editMode, via pointer events) ──
+    // ── Drag (alleen in editMode) ──
     function finishDrag(commitOrder) {
       if (!dragState) return;
       const { source, clone, placeholder, pointerId } = dragState;
@@ -2343,7 +2164,6 @@
       document.removeEventListener("pointercancel", onDragEnd);
 
       source.classList.remove("is-drag-source");
-      source.style.touchAction = "";         // herstel touch-action
       try { source.releasePointerCapture(pointerId); } catch (_) {}
 
       if (clone) clone.remove();
@@ -2357,12 +2177,11 @@
 
     function onDragMove(e) {
       if (!dragState) return;
-      e.preventDefault();                    // blokkeer scroll alleen tijdens drag
+      e.preventDefault();
 
       if (!dragState.active) {
-        // Start de visuele drag
         const { source } = dragState;
-        const rect = source.getBoundingClientRect();
+        const rect  = source.getBoundingClientRect();
         const clone = source.cloneNode(true);
         const ph    = document.createElement(source.tagName.toLowerCase());
 
@@ -2379,7 +2198,6 @@
         source.classList.add("is-drag-source");
         source.parentNode.replaceChild(ph, source);
         document.body.appendChild(clone);
-        spawnSparkles(e.clientX, e.clientY);
 
         dragState.active      = true;
         dragState.clone       = clone;
@@ -2388,7 +2206,6 @@
         dragState.height      = rect.height;
       }
 
-      // Beweeg clone mee
       const { clone, offsetX, offsetY } = dragState;
       clone.style.left = `${e.clientX - offsetX}px`;
       clone.style.top  = `${e.clientY - offsetY}px`;
@@ -2400,16 +2217,14 @@
       for (const c of cards) {
         const r  = c.getBoundingClientRect();
         const my = e.clientY >= r.top && e.clientY <= r.bottom;
-        if (my && e.clientX < r.left + r.width / 2) { target = { before: true, el: c }; break; }
+        if (my && e.clientX < r.left + r.width / 2) { target = { before: true,  el: c }; break; }
         if (my && e.clientX <= r.right)              { target = { before: false, el: c }; break; }
         if (e.clientY < r.top)                       { target = { before: true,  el: c }; break; }
       }
       const ph = dragState.placeholder;
-      if (!target)               cardsGrid.appendChild(ph);
-      else if (target.before)    cardsGrid.insertBefore(ph, target.el);
-      else                       cardsGrid.insertBefore(ph, target.el.nextSibling);
-
-      spawnTrailSpark(e.clientX, e.clientY);
+      if (!target)            cardsGrid.appendChild(ph);
+      else if (target.before) cardsGrid.insertBefore(ph, target.el);
+      else                    cardsGrid.insertBefore(ph, target.el.nextSibling);
     }
 
     function onDragEnd() {
@@ -2417,82 +2232,35 @@
     }
 
     function onCardPointerDown(e) {
+      if (!editMode) return;
       if (e.button !== 0) return;
-      const card = e.currentTarget;  // vastleggen vóór elke async operatie
+      if (cardsGrid.classList.contains("list")) return;
 
-      if (editMode) {
-        // ── DRAG (herschikken in editMode) ──
-        if (cardsGrid.classList.contains("list")) return;
-        e.preventDefault();
-        card.style.touchAction = "none";
+      e.preventDefault();
 
-        dragState = {
-          source:      card,
-          pointerId:   e.pointerId,
-          offsetX:     e.clientX - card.getBoundingClientRect().left,
-          offsetY:     e.clientY - card.getBoundingClientRect().top,
-          active:      false,
-          clone:       null,
-          placeholder: null,
-        };
-
-        try { card.releasePointerCapture(e.pointerId); } catch (_) {}
-        document.addEventListener("pointermove",   onDragMove,  { passive: false });
-        document.addEventListener("pointerup",     onDragEnd,   { passive: true  });
-        document.addEventListener("pointercancel", onDragEnd,   { passive: true  });
-        return;
-      }
-
-      // ── LONG-PRESS DETECTIE (buiten editMode) ──
-      // Werkt met touch, stylus én muis. e.currentTarget is hier al veilig vastgelegd.
-      cancelLongPress();
-      lpPointerId = e.pointerId;
-      lpStartX    = e.clientX;
-      lpStartY    = e.clientY;
-
-      lpTimer = setTimeout(() => {
-        lpTimer = null;
-        cancelLongPress();
-        enterEditMode(card);
-      }, LONG_PRESS_MS);
-
-      // Annuleer bij bewegen of loslaten
-      const onLpMove = (ev) => {
-        if (ev.pointerId !== lpPointerId) return;
-        if (Math.hypot(ev.clientX - lpStartX, ev.clientY - lpStartY) > 10) cancelLongPress();
-      };
-      const onLpEnd = (ev) => {
-        if (ev.pointerId !== lpPointerId) return;
-        cancelLongPress();
+      const card = e.currentTarget;
+      dragState = {
+        source:      card,
+        pointerId:   e.pointerId,
+        offsetX:     e.clientX - card.getBoundingClientRect().left,
+        offsetY:     e.clientY - card.getBoundingClientRect().top,
+        active:      false,
+        clone:       null,
+        placeholder: null,
       };
 
-      document.addEventListener("pointermove",   onLpMove, { passive: true });
-      document.addEventListener("pointerup",     onLpEnd,  { passive: true });
-      document.addEventListener("pointercancel", onLpEnd,  { passive: true });
-
-      lpCleanup = () => {
-        document.removeEventListener("pointermove",   onLpMove);
-        document.removeEventListener("pointerup",     onLpEnd);
-        document.removeEventListener("pointercancel", onLpEnd);
-      };
-    }
-
-    // ── contextmenu = browser's eigen long-press (meest betrouwbaar op Chromebook/Android) ──
-    function onCardContextMenu(e) {
-      e.preventDefault();                 // voorkom context-menu popup
-      if (!editMode) {
-        cancelLongPress();                // stop evt. lopende timer
-        enterEditMode(e.currentTarget);
-      }
+      try { card.releasePointerCapture(e.pointerId); } catch (_) {}
+      document.addEventListener("pointermove",   onDragMove, { passive: false });
+      document.addEventListener("pointerup",     onDragEnd,  { passive: true  });
+      document.addEventListener("pointercancel", onDragEnd,  { passive: true  });
     }
 
     // ── Click: laat <a target="_blank"> gewoon werken ──
     function onCardClick(e) {
       if (editMode) {
-        e.preventDefault();   // in editMode: geen navigatie
+        e.preventDefault();
         e.stopPropagation();
       }
-      // Buiten editMode: browser opent de link via target="_blank" zelf
     }
 
     /* ── Plus tile ── */
