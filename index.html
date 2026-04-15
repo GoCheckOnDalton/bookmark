@@ -893,6 +893,33 @@
       border-color: rgba(200, 60, 60, 0.24);
     }
 
+    .edit-app-btn {
+      width: 26px;
+      height: 26px;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 6px;
+      color: rgba(29, 55, 78, 0.32);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 0.72rem;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .edit-app-btn:hover {
+      background: rgba(24, 167, 223, 0.10);
+      color: var(--primary);
+      border-color: rgba(24, 167, 223, 0.28);
+    }
+
+    .edit-app-btn.is-editing {
+      background: rgba(24, 167, 223, 0.15);
+      color: var(--primary);
+      border-color: rgba(24, 167, 223, 0.40);
+    }
+
     /* Add form */
     .add-form {
       padding: 18px 20px;
@@ -1022,7 +1049,7 @@
     }
 
     /* Submit button */
-    .form-actions { padding-top: 2px; }
+    /* .form-actions defined below with btn-cancel */
 
     .btn-add {
       width: 100%;
@@ -1046,6 +1073,30 @@
     .btn-add:hover {
       transform: translateY(-1px);
       box-shadow: 0 12px 28px rgba(181, 111, 89, 0.34);
+    }
+
+    .btn-cancel {
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.84rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-cancel:hover {
+      background: rgba(29, 55, 78, 0.05);
+      color: var(--ink);
+    }
+
+    .form-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
     .form-msg {
@@ -1561,7 +1612,7 @@
     <div id="appsView">
       <div class="content-head">
         <div class="content-head-left">
-          <div class="content-head-eyebrow">Favorieten</div>
+          <div class="content-head-eyebrow"></div>
           <h2>Applicaties</h2>
         </div>
         <div class="toolbar">
@@ -1595,7 +1646,7 @@
       <div class="settings-head">
         <div class="settings-head-left">
           <div class="content-head-eyebrow">Beheer</div>
-          <h2 style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--ink);margin:0;line-height:1;">Instellingen</h2>
+          <h2 style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--ink);margin:0;line-height:1;">Configuratie</h2>
         </div>
         <button id="backBtn" class="settings-back" type="button">
           <i class="fa-solid fa-arrow-left"></i>
@@ -1615,12 +1666,12 @@
           <div id="settingsAppList" class="settings-app-list"></div>
         </section>
 
-        <!-- Right: add form -->
+        <!-- Right: add / edit form -->
         <section class="settings-panel">
           <div class="settings-panel-head">
-            <div class="settings-panel-eyebrow">Toevoegen</div>
-            <h3>Nieuwe tegel</h3>
-            <p>Maak een eigen applicatietegel aan.</p>
+            <div class="settings-panel-eyebrow" id="settingsPanelEyebrow">Toevoegen</div>
+            <h3 id="settingsPanelTitle">Nieuwe tegel</h3>
+            <p id="settingsPanelDesc">Maak een eigen applicatietegel aan.</p>
           </div>
 
           <form id="addAppForm" class="add-form" novalidate>
@@ -1666,9 +1717,12 @@
             </div>
 
             <div class="form-actions">
-              <button type="submit" class="btn-add">
+              <button type="submit" class="btn-add" id="formSubmitBtn">
                 <i class="fa-solid fa-plus"></i>
                 Tegel toevoegen
+              </button>
+              <button type="button" class="btn-cancel" id="formCancelBtn" hidden>
+                Annuleer
               </button>
             </div>
             <div id="formError" class="form-msg form-error" hidden></div>
@@ -2288,6 +2342,11 @@
       editMode ? exitEditMode() : enterEditMode();
     });
 
+    /* ESC sluit editMode */
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && editMode) exitEditMode();
+    });
+
     // ── Drag (alleen in editMode) ──
     function finishDrag(commitOrder) {
       if (!dragState) return;
@@ -2566,10 +2625,13 @@
     ══════════════════════════════════════════ */
     const customAppsKey  = `${storageNamespace}:custom`;
     const hiddenAppsKey  = `${storageNamespace}:hidden`;
+    const overridesKey   = `${storageNamespace}:overrides`;
 
-    let customApps   = [];
-    let hiddenAppIds = new Set();
+    let customApps      = [];
+    let hiddenAppIds    = new Set();
+    let appOverrides    = {};   // { [appId]: { name?, url?, subtitle?, logo?, color?, fallback? } }
     let uploadedIconData = null;
+    let editingAppId     = null;
 
     /* ── Storage helpers ── */
     function loadCustomApps() {
@@ -2594,10 +2656,28 @@
       localStorage.setItem(hiddenAppsKey, JSON.stringify([...hiddenAppIds]));
     }
 
-    /* ── Merge all apps (built-in + custom, respecting hidden) ── */
+    function loadAppOverrides() {
+      try {
+        const s = localStorage.getItem(overridesKey);
+        if (s) appOverrides = JSON.parse(s);
+      } catch (_) { appOverrides = {}; }
+    }
+
+    function saveAppOverrides() {
+      localStorage.setItem(overridesKey, JSON.stringify(appOverrides));
+    }
+
+    /* ── Merge all apps (built-in + custom, with overrides applied) ── */
     function getAllApps() {
-      const builtIn = apps.map((a, i) => ({ ...a, id: a.id || `app-${i + 1}`, _custom: false }));
-      const own     = customApps.map(a => ({ ...a, _custom: true }));
+      const builtIn = apps.map((a, i) => {
+        const base = { ...a, id: a.id || `app-${i + 1}`, _custom: false };
+        const ov   = appOverrides[base.id];
+        return ov ? { ...base, ...ov, _custom: false } : base;
+      });
+      const own = customApps.map(a => {
+        const ov = appOverrides[a.id];
+        return ov ? { ...a, ...ov, _custom: true } : { ...a, _custom: true };
+      });
       return [...builtIn, ...own];
     }
 
@@ -2746,6 +2826,15 @@
         lbl.appendChild(track);
         item.appendChild(lbl);
 
+        /* Edit button (all apps) */
+        const editBtn = document.createElement("button");
+        editBtn.className = "edit-app-btn" + (editingAppId === app.id ? " is-editing" : "");
+        editBtn.type = "button";
+        editBtn.title = "Bewerken";
+        editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+        editBtn.addEventListener("click", () => openEditForm(app));
+        item.appendChild(editBtn);
+
         /* Delete (custom only) */
         if (app._custom) {
           const del = document.createElement("button");
@@ -2757,6 +2846,7 @@
             if (!confirm(`"${app.name}" definitief verwijderen?`)) return;
             customApps   = customApps.filter(a => a.id !== app.id);
             hiddenAppIds.delete(app.id);
+            if (editingAppId === app.id) resetEditForm();
             saveCustomApps();
             saveHiddenApps();
             renderSettingsAppList();
@@ -2766,6 +2856,82 @@
 
         list.appendChild(item);
       });
+    }
+
+    /* ── Open edit form for an existing app ── */
+    function openEditForm(app) {
+      editingAppId = app.id;
+
+      document.getElementById("newAppName").value     = app.name     || "";
+      document.getElementById("newAppUrl").value      = app.url      || "";
+      document.getElementById("newAppSubtitle").value = app.subtitle || "";
+      document.getElementById("newAppFallback").value = app.fallback || "";
+
+      /* Icon preview */
+      uploadedIconData = null;
+      const pre = document.getElementById("iconPreview");
+      if (app.logo) {
+        uploadedIconData = app.logo;
+        pre.innerHTML = "";
+        pre.style.background = "none";
+        pre.style.color = "";
+        const img = document.createElement("img");
+        img.src = app.logo;
+        img.style.cssText = "width:100%;height:100%;object-fit:contain;border-radius:8px";
+        pre.appendChild(img);
+      } else {
+        pre.innerHTML = '<i class="fa-solid fa-image"></i>';
+        pre.style.background = "";
+        pre.style.color = "";
+      }
+
+      /* Colors */
+      const colorStr  = app.color || "linear-gradient(135deg, #18a7df, #116e95)";
+      const colorMatch = colorStr.match(/#[0-9a-fA-F]{3,6}/g);
+      document.getElementById("newAppColor1").value = (colorMatch && colorMatch[0]) || "#18a7df";
+      document.getElementById("newAppColor2").value = (colorMatch && colorMatch[1]) || "#116e95";
+
+      /* Panel labels */
+      document.getElementById("settingsPanelEyebrow").textContent = "Bewerken";
+      document.getElementById("settingsPanelTitle").textContent   = app.name;
+      document.getElementById("settingsPanelDesc").textContent    = "Pas de naam, het icoon of de URL aan.";
+      document.getElementById("formSubmitBtn").innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Opslaan';
+      document.getElementById("formCancelBtn").hidden = false;
+
+      /* Highlight active row */
+      document.querySelectorAll(".edit-app-btn").forEach(b => b.classList.remove("is-editing"));
+      const allApps = getAllApps();
+      const idx     = allApps.findIndex(a => a.id === app.id);
+      if (idx !== -1) {
+        const rows = document.querySelectorAll(".settings-app-item");
+        if (rows[idx]) rows[idx].querySelector(".edit-app-btn")?.classList.add("is-editing");
+      }
+
+      updateColorPreview();
+
+      /* Scroll right panel into view */
+      document.getElementById("addAppForm").closest(".settings-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    /* ── Reset form back to "add new" state ── */
+    function resetEditForm() {
+      editingAppId     = null;
+      uploadedIconData = null;
+
+      document.getElementById("addAppForm").reset();
+      const pre = document.getElementById("iconPreview");
+      pre.innerHTML        = '<i class="fa-solid fa-image"></i>';
+      pre.style.background = "";
+      pre.style.color      = "";
+      document.getElementById("newAppColor1").value = "#18a7df";
+      document.getElementById("newAppColor2").value = "#116e95";
+      document.getElementById("settingsPanelEyebrow").textContent = "Toevoegen";
+      document.getElementById("settingsPanelTitle").textContent   = "Nieuwe tegel";
+      document.getElementById("settingsPanelDesc").textContent    = "Maak een eigen applicatietegel aan.";
+      document.getElementById("formSubmitBtn").innerHTML = '<i class="fa-solid fa-plus"></i> Tegel toevoegen';
+      document.getElementById("formCancelBtn").hidden = true;
+      document.querySelectorAll(".edit-app-btn").forEach(b => b.classList.remove("is-editing"));
+      updateColorPreview();
     }
 
     /* ── Color preview ── */
@@ -2814,7 +2980,7 @@
       reader.readAsDataURL(file);
     });
 
-    /* ── Add app form ── */
+    /* ── Add / Edit app form ── */
     document.getElementById("addAppForm").addEventListener("submit", e => {
       e.preventDefault();
       const name     = document.getElementById("newAppName").value.trim();
@@ -2827,6 +2993,36 @@
       if (!name)                          { showFormMsg("error", "Vul een naam in."); return; }
       if (!url || !url.startsWith("http")){ showFormMsg("error", "Vul een geldige URL in (begin met https://)."); return; }
 
+      if (editingAppId) {
+        /* ── Editing an existing app ── */
+        const overrideData = {
+          name,
+          url,
+          subtitle: subtitle || undefined,
+          fallback,
+          color: `linear-gradient(135deg, ${c1}, ${c2})`
+        };
+        if (uploadedIconData) overrideData.logo = uploadedIconData;
+
+        const customIdx = customApps.findIndex(a => a.id === editingAppId);
+        if (customIdx !== -1) {
+          /* Custom app — update in place */
+          customApps[customIdx] = { ...customApps[customIdx], ...overrideData };
+          saveCustomApps();
+        } else {
+          /* Built-in app — store override separately */
+          appOverrides[editingAppId] = { ...(appOverrides[editingAppId] || {}), ...overrideData };
+          saveAppOverrides();
+        }
+
+        showFormMsg("success", `✓ "${name}" is bijgewerkt!`);
+        resetEditForm();
+        renderSettingsAppList();
+        setTimeout(() => { document.getElementById("formSuccess").hidden = true; }, 4000);
+        return;
+      }
+
+      /* ── Adding a new custom app ── */
       const newApp = {
         id:       `custom-${Date.now()}`,
         name,
@@ -2842,18 +3038,14 @@
       saveCustomApps();
       showFormMsg("success", `✓ "${name}" is toegevoegd aan de bibliotheek!`);
 
-      /* Reset form */
-      e.target.reset();
-      uploadedIconData = null;
-      const pre = document.getElementById("iconPreview");
-      pre.innerHTML        = '<i class="fa-solid fa-image"></i>';
-      pre.style.background = "";
-      pre.style.color      = "";
-      document.getElementById("newAppColor1").value = "#18a7df";
-      document.getElementById("newAppColor2").value = "#116e95";
-      updateColorPreview();
+      resetEditForm();
       renderSettingsAppList();
       setTimeout(() => { document.getElementById("formSuccess").hidden = true; }, 4000);
+    });
+
+    /* ── Cancel edit ── */
+    document.getElementById("formCancelBtn").addEventListener("click", () => {
+      resetEditForm();
     });
 
     function showFormMsg(type, msg) {
@@ -2873,6 +3065,7 @@
     ══════════════════════════════════════════ */
     loadCustomApps();
     loadHiddenApps();
+    loadAppOverrides();
     loadStoredOrder();
     rebuildOrderedApps();
     filterCards();
