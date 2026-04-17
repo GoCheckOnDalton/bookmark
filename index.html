@@ -59,7 +59,6 @@
       --shadow-hover: 0 18px 42px rgba(34, 42, 53, 0.13);
       --radius: 14px;
       --radius-soft: 22px;
-      --sidebar-w: 76px;
       --topbar-h: 66px;
       --card-w: 158px;
       --card-h: 165px;
@@ -89,11 +88,11 @@
     .app-shell {
       height: 100vh;
       display: grid;
-      grid-template-columns: var(--sidebar-w) 1fr;
+      grid-template-columns: 1fr;
       grid-template-rows: var(--topbar-h) 1fr;
       grid-template-areas:
-        "topbar topbar"
-        "sidebar main";
+        "topbar"
+        "main";
     }
 
     /* ── TOPBAR ── */
@@ -126,13 +125,13 @@
       pointer-events: none;
     }
 
-    .topbar-left,
-    .topbar-right {
+    .topbar-left {
       display: flex;
       align-items: center;
       gap: 14px;
       position: relative;
       z-index: 1;
+      flex-shrink: 0;
     }
 
     .burger {
@@ -190,14 +189,16 @@
     .topbar-clock {
       display: flex;
       flex-direction: column;
-      align-items: flex-end;
+      align-items: flex-start;
       gap: 2px;
       color: rgba(255, 255, 255, 0.93);
       line-height: 1.3;
       user-select: none;
-      max-width: 340px;
-      overflow: hidden;       /* knipt de scrollende tekst af */
-      text-align: right;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-align: left;
+      padding-left: 24px;
     }
 
     @keyframes quote-ticker {
@@ -229,55 +230,45 @@
       text-transform: capitalize;
     }
 
-    /* ── SIDEBAR ── */
-    .sidebar {
-      grid-area: sidebar;
-      background: var(--panel);
-      border-right: 1px solid var(--line);
-      padding-top: 14px;
+    /* ── ADMIN BADGE (topbar) ── */
+    .admin-badge {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 4px;
-    }
-
-    .side-btn {
-      width: 58px;
-      height: 54px;
-      border: none;
-      background: transparent;
-      color: rgba(29, 55, 78, 0.35);
-      border-radius: var(--radius);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      font-size: 1.15rem;
-      cursor: pointer;
-      position: relative;
-      transition: color 0.2s ease, background 0.2s ease;
-    }
-
-    .side-btn .side-label {
-      font-size: 0.60rem;
+      gap: 8px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 0.75rem;
       font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      color: #fff;
+      letter-spacing: 0.03em;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .admin-badge[hidden] { display: none; }
+
+    .admin-badge-logout {
+      border: none;
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      border-radius: 5px;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 700;
       line-height: 1;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      transition: background 0.15s;
     }
 
-    .side-btn.active,
-    .side-btn:hover {
-      color: var(--brick);
-      background: rgba(181, 111, 89, 0.10);
-    }
-
-    .side-divider {
-      width: 32px;
-      height: 1px;
-      background: var(--line);
-      margin: 6px 0;
+    .admin-badge-logout:hover {
+      background: rgba(255,255,255,0.35);
     }
 
     /* ── MAIN ── */
@@ -289,29 +280,14 @@
 
     .content-head {
       display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 18px;
+      align-items: center;
+      gap: 14px;
       margin-bottom: 24px;
       padding-bottom: 18px;
       border-bottom: 1px solid var(--line);
     }
 
-    .content-head-left {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .content-head-eyebrow {
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      font-size: 0.64rem;
-      color: var(--brick);
-      font-weight: 700;
-      margin-bottom: 5px;
-    }
-
-    .content-head h2 {
+    .content-head-title {
       margin: 0;
       font-family: "Cormorant Garamond", serif;
       font-size: 2rem;
@@ -319,62 +295,24 @@
       line-height: 1;
       letter-spacing: 0.01em;
       color: var(--ink);
+      white-space: nowrap;
     }
 
-    /* ── TOOLBAR ── */
-    .toolbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    /* ── ZOEK PANEL (slide-out naast sidebar) ── */
-    .search-panel {
-      position: fixed;
-      left: var(--sidebar-w);
-      top: var(--topbar-h);
-      width: 270px;
-      background: var(--panel-strong);
-      border: 1px solid var(--line);
-      border-left: none;
-      border-top: none;
-      border-bottom-right-radius: 14px;
-      box-shadow: 6px 6px 22px rgba(18, 49, 74, 0.12);
-      padding: 12px;
-      z-index: 30;
-      transform: translateX(calc(-100% - var(--sidebar-w)));
-      transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-      pointer-events: none;
-    }
-
-    .search-panel.open {
-      transform: translateX(0);
-      pointer-events: auto;
-    }
-
-    .search-panel-inner {
+    .inline-search {
+      flex: 1;
+      max-width: 300px;
       position: relative;
       display: flex;
       align-items: center;
     }
 
-    .search-icon {
-      position: absolute;
-      left: 10px;
-      color: var(--muted);
-      font-size: 0.82rem;
-      pointer-events: none;
-    }
-
-    .search-panel input {
+    .inline-search input {
       width: 100%;
-      height: 38px;
+      height: 36px;
       border: 1px solid var(--line);
       background: var(--panel-strong);
       border-radius: 9px;
-      padding: 0 34px 0 32px;
+      padding: 0 30px 0 12px;
       font: inherit;
       font-size: 0.87rem;
       color: var(--text);
@@ -382,14 +320,14 @@
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .search-panel input:focus {
+    .inline-search input:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(24, 167, 223, 0.10);
     }
 
-    .search-panel input::placeholder { color: var(--sand); }
+    .inline-search input::placeholder { color: var(--sand); }
 
-    .search-clear {
+    .inline-search-clear {
       position: absolute;
       right: 8px;
       border: none;
@@ -402,10 +340,48 @@
       padding: 0 2px;
     }
 
-    .side-btn.search-active {
-      color: var(--primary);
-      background: rgba(24, 167, 223, 0.10);
+    /* ── FAB (zwevende + knop) ── */
+    .fab {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--brick), #d4896f);
+      color: #fff;
+      border: none;
+      font-size: 2rem;
+      font-weight: 300;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(181, 111, 89, 0.45);
+      display: grid;
+      place-items: center;
+      z-index: 50;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
     }
+
+    .fab:hover {
+      transform: scale(1.10);
+      box-shadow: 0 10px 32px rgba(181, 111, 89, 0.58);
+    }
+
+    .fab:active {
+      transform: scale(0.96);
+    }
+
+    .fab[hidden] { display: none; }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
 
     .tool-btn,
     .view-toggle button {
@@ -683,59 +659,6 @@
       letter-spacing: 0.02em;
     }
 
-    /* ── SETTINGS VIEW ── */
-    .settings-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 18px;
-      margin-bottom: 24px;
-      padding-bottom: 18px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .settings-back {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      padding: 9px 15px;
-      font: inherit;
-      font-size: 0.83rem;
-      font-weight: 700;
-      color: var(--text);
-      cursor: pointer;
-      position: relative;
-      transition: border-color 0.2s, color 0.2s;
-      white-space: nowrap;
-    }
-
-    .settings-back:hover {
-      border-color: var(--brick);
-      color: var(--brick);
-    }
-
-    .settings-layout {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 22px;
-      align-items: start;
-    }
-
-    .settings-panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-soft);
-      overflow: hidden;
-    }
-
-    .settings-panel-head {
-      padding: 18px 20px 14px;
-      border-bottom: 1px solid var(--line);
-    }
-
     .settings-panel-eyebrow {
       text-transform: uppercase;
       letter-spacing: 0.18em;
@@ -743,181 +666,6 @@
       color: var(--brick);
       font-weight: 700;
       margin-bottom: 4px;
-    }
-
-    .settings-panel-head h3 {
-      margin: 0 0 5px;
-      font-family: "Cormorant Garamond", serif;
-      font-size: 1.45rem;
-      font-weight: 700;
-      color: var(--ink);
-      line-height: 1;
-    }
-
-    .settings-panel-head p {
-      margin: 0;
-      font-size: 0.80rem;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    /* App list */
-    .settings-app-list {
-      max-height: 520px;
-      overflow-y: auto;
-    }
-
-    .settings-app-item {
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      padding: 10px 18px;
-      border-bottom: 1px solid var(--line);
-      transition: background 0.15s;
-    }
-
-    .settings-app-item:last-child { border-bottom: none; }
-
-    .settings-app-item:hover { background: rgba(29, 55, 78, 0.03); }
-
-    .settings-app-item.is-hidden { opacity: 0.4; }
-
-    .settings-app-thumb {
-      width: 32px;
-      height: 32px;
-      flex-shrink: 0;
-      border-radius: 8px;
-      overflow: hidden;
-      display: grid;
-      place-items: center;
-    }
-
-    .settings-app-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .settings-app-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .settings-app-name {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: var(--ink);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .settings-app-url {
-      font-size: 0.72rem;
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Toggle switch */
-    .toggle-switch {
-      position: relative;
-      width: 34px;
-      height: 20px;
-      flex-shrink: 0;
-    }
-
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-      position: absolute;
-    }
-
-    .toggle-track {
-      position: absolute;
-      inset: 0;
-      background: rgba(29, 55, 78, 0.16);
-      border-radius: 20px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .toggle-track::after {
-      content: "";
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 14px;
-      height: 14px;
-      background: #fff;
-      border-radius: 50%;
-      transition: transform 0.2s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
-
-    .toggle-switch input:checked + .toggle-track { background: var(--primary); }
-    .toggle-switch input:checked + .toggle-track::after { transform: translateX(14px); }
-
-    .custom-tag {
-      font-size: 0.60rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      background: rgba(181, 111, 89, 0.12);
-      color: var(--brick);
-      border-radius: 4px;
-      padding: 2px 6px;
-      flex-shrink: 0;
-    }
-
-    .delete-app-btn {
-      width: 26px;
-      height: 26px;
-      border: 1px solid transparent;
-      background: transparent;
-      border-radius: 6px;
-      color: rgba(200, 60, 60, 0.38);
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-      font-size: 0.72rem;
-      flex-shrink: 0;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
-
-    .delete-app-btn:hover {
-      background: rgba(200, 60, 60, 0.08);
-      color: #c84d4d;
-      border-color: rgba(200, 60, 60, 0.24);
-    }
-
-    .edit-app-btn {
-      width: 26px;
-      height: 26px;
-      border: 1px solid transparent;
-      background: transparent;
-      border-radius: 6px;
-      color: rgba(29, 55, 78, 0.32);
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-      font-size: 0.72rem;
-      flex-shrink: 0;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
-
-    .edit-app-btn:hover {
-      background: rgba(24, 167, 223, 0.10);
-      color: var(--primary);
-      border-color: rgba(24, 167, 223, 0.28);
-    }
-
-    .edit-app-btn.is-editing {
-      background: rgba(24, 167, 223, 0.15);
-      color: var(--primary);
-      border-color: rgba(24, 167, 223, 0.40);
     }
 
     /* Add form */
@@ -1049,7 +797,6 @@
     }
 
     /* Submit button */
-    /* .form-actions defined below with btn-cancel */
 
     .btn-add {
       width: 100%;
@@ -1119,16 +866,11 @@
       color: #0a7a56;
     }
 
-    @media (max-width: 960px) {
-      .settings-layout { grid-template-columns: 1fr; }
-      .settings-app-list { max-height: 300px; }
-    }
-
     /* ── TOUCH BEST PRACTICES ── */
 
     /* Voorkom dubbel-tap zoom op knoppen maar NIET op de hele html
        (want dat blokkeert ook scrollen via touch-action inheritance) */
-    button, .tool-btn, .view-toggle button, .side-btn {
+    button, .tool-btn, .view-toggle button {
       touch-action: manipulation;
     }
 
@@ -1151,19 +893,8 @@
       box-shadow: 0 5px 14px rgba(18, 49, 74, 0.13);
     }
 
-    .side-btn:not(.active):hover {
-      transform: translateY(-2px);
-    }
-
-    .settings-back:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 14px rgba(18, 49, 74, 0.10);
-    }
-
     .tool-btn,
-    .view-toggle button,
-    .side-btn,
-    .settings-back {
+    .view-toggle button {
       transition: color 0.15s, background 0.15s, border-color 0.15s,
                   transform 0.15s ease, box-shadow 0.15s ease;
     }
@@ -1182,7 +913,6 @@
     }
 
     /* Minimale tap-target grootte (WCAG 2.5.5) */
-    .side-btn { min-height: 44px; min-width: 44px; }
     .tool-btn, .view-toggle button { min-height: 44px; }
 
     /* ── CARD DELETE BUTTON ── */
@@ -1386,7 +1116,8 @@
       cursor: pointer;
       display: grid;
       place-items: center;
-      font-size: 0.9rem;
+      font-size: 1.25rem;
+      line-height: 1;
       transition: border-color 0.15s, color 0.15s, background 0.15s;
     }
 
@@ -1514,21 +1245,12 @@
 
       .app-shell {
         grid-template-columns: 1fr;
-        grid-template-rows: var(--topbar-h) auto 1fr;
+        grid-template-rows: var(--topbar-h) 1fr;
         grid-template-areas:
           "topbar"
-          "sidebar"
           "main";
         height: auto;
         min-height: 100vh;
-      }
-
-      .sidebar {
-        flex-direction: row;
-        justify-content: center;
-        padding: 10px;
-        border-right: none;
-        border-bottom: 1px solid var(--line);
       }
 
       .main {
@@ -1536,17 +1258,21 @@
       }
 
       .content-head {
-        align-items: flex-start;
-        flex-direction: column;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .content-head-title {
+        flex: 0 0 100%;
+      }
+
+      .inline-search {
+        max-width: 100%;
+        flex: 1;
       }
 
       .toolbar {
-        width: 100%;
         justify-content: flex-start;
-      }
-
-      .search {
-        width: 100%;
       }
 
       .topbar {
@@ -1573,47 +1299,23 @@
           <h1>Applicatiebibliotheek</h1>
         </div>
       </div>
-      <div class="topbar-right">
-        <div class="topbar-clock" aria-live="polite" aria-label="Wijsheid van de dag">
-          <div id="clockQuote" class="topbar-clock-time"></div>
-          <div id="clockDate"  class="topbar-clock-date">laden…</div>
-        </div>
+      <div class="topbar-clock" aria-live="polite" aria-label="Wijsheid van de dag">
+        <div id="clockQuote" class="topbar-clock-time"></div>
+        <div id="clockDate"  class="topbar-clock-date">laden…</div>
+      </div>
+      <div id="adminBadge" class="admin-badge" hidden>
+        🔓 Beheerder
+        <button id="adminLogoutBtn" class="admin-badge-logout" type="button" title="Afmelden als beheerder">×</button>
       </div>
     </header>
-
-    <aside class="sidebar" aria-label="Navigatie">
-      <button class="side-btn active" id="sideAppsBtn" type="button" aria-label="Applicaties">
-        <i class="fa-regular fa-paper-plane"></i>
-        <span class="side-label">Apps</span>
-      </button>
-      <div class="side-divider"></div>
-      <button class="side-btn" id="sideSettingsBtn" type="button" aria-label="Instellingen">
-        <i class="fa-solid fa-gear"></i>
-        <span class="side-label">Config</span>
-      </button>
-      <div class="side-divider"></div>
-      <button class="side-btn" id="sideSearchBtn" type="button" aria-label="Zoeken">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <span class="side-label">Zoeken</span>
-      </button>
-    </aside>
-
-    <!-- ── ZOEK PANEL (slide-out) ── -->
-    <div id="searchPanel" class="search-panel" aria-hidden="true">
-      <div class="search-panel-inner">
-        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input id="searchInput" type="search" placeholder="Zoeken…" autocomplete="off" spellcheck="false">
-        <button id="clearSearch" class="search-clear" type="button" aria-label="Zoeken wissen">×</button>
-      </div>
-    </div>
 
     <main class="main">
     <!-- ── APPS VIEW ── -->
     <div id="appsView">
       <div class="content-head">
-        <div class="content-head-left">
-          <div class="content-head-eyebrow"></div>
-          <h2>Applicaties</h2>
+        <div class="inline-search">
+          <input id="searchInput" type="search" placeholder="Zoeken…" autocomplete="off" spellcheck="false">
+          <button id="clearSearch" class="inline-search-clear" type="button" aria-label="Zoeken wissen">×</button>
         </div>
         <div class="toolbar">
           <div class="view-toggle" aria-label="Weergave wisselen">
@@ -1630,109 +1332,130 @@
             <i class="fa-solid fa-arrows-up-down-left-right"></i>
             <span>Bewerken</span>
           </button>
+          <button class="tool-btn" id="adminLockBtn" type="button" title="Beheerdersmodus">
+            <span id="adminLockIcon">🔒</span>
+            <span id="adminLockLabel">Beheer</span>
+          </button>
         </div>
       </div>
 
       <div id="editModeBar" class="edit-mode-bar">
-        <span><i class="fa-solid fa-arrows-up-down-left-right"></i> Sleep om te herschikken &nbsp;·&nbsp; tik <i class="fa-solid fa-xmark"></i> om te verbergen</span>
+        <span><i class="fa-solid fa-arrows-up-down-left-right"></i> Sleep om te herschikken &nbsp;·&nbsp; tik × om te verbergen</span>
       </div>
 
       <section id="cardsGrid" class="grid" aria-live="polite"></section>
       <div id="emptyState" class="empty">Geen applicaties gevonden voor deze zoekopdracht.</div>
     </div>
 
-    <!-- ── SETTINGS VIEW ── -->
-    <div id="settingsView" hidden>
-      <div class="settings-head">
-        <div class="settings-head-left">
-          <div class="content-head-eyebrow">Beheer</div>
-          <h2 style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--ink);margin:0;line-height:1;">Configuratie</h2>
+    <button id="addAppFab" class="fab" type="button" title="App toevoegen" aria-label="App toevoegen">+</button>
+
+    </main>
+  </div>
+
+  <!-- ── PIN MODAL ── -->
+  <div id="pinModal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-label="Beheerdersmodus">
+    <div class="modal-panel" style="max-width:360px">
+      <div class="modal-header">
+        <div>
+          <div class="settings-panel-eyebrow">Toegang</div>
+          <h3 id="pinModalTitle">Beheerdersmodus</h3>
         </div>
-        <button id="backBtn" class="settings-back" type="button">
-          <i class="fa-solid fa-arrow-left"></i>
-          Terug naar applicaties
-        </button>
+        <button class="modal-close" id="closePinModal" type="button">×</button>
       </div>
-
-      <div class="settings-layout">
-
-        <!-- Left: app list -->
-        <section class="settings-panel">
-          <div class="settings-panel-head">
-            <div class="settings-panel-eyebrow">Overzicht</div>
-            <h3>Applicaties</h3>
-            <p>Zet tegels aan of uit. Eigen tegels kun je ook verwijderen.</p>
-          </div>
-          <div id="settingsAppList" class="settings-app-list"></div>
-        </section>
-
-        <!-- Right: add / edit form -->
-        <section class="settings-panel">
-          <div class="settings-panel-head">
-            <div class="settings-panel-eyebrow" id="settingsPanelEyebrow">Toevoegen</div>
-            <h3 id="settingsPanelTitle">Nieuwe tegel</h3>
-            <p id="settingsPanelDesc">Maak een eigen applicatietegel aan.</p>
-          </div>
-
-          <form id="addAppForm" class="add-form" novalidate>
-            <div class="form-row">
-              <label class="form-label" for="newAppName">Naam <span class="required">*</span></label>
-              <input id="newAppName" class="form-input" type="text" placeholder="bijv. Microsoft Forms" required>
-            </div>
-            <div class="form-row">
-              <label class="form-label" for="newAppUrl">URL <span class="required">*</span></label>
-              <input id="newAppUrl" class="form-input" type="url" placeholder="https://…" required>
-            </div>
-            <div class="form-row">
-              <label class="form-label" for="newAppSubtitle">Categorie</label>
-              <input id="newAppSubtitle" class="form-input" type="text" placeholder="bijv. Microsoft 365">
-            </div>
-
-            <div class="form-row">
-              <label class="form-label">Icoon uploaden</label>
-              <div class="icon-upload-area">
-                <div class="icon-preview" id="iconPreview">
-                  <i class="fa-solid fa-image"></i>
-                </div>
-                <div class="icon-upload-info">
-                  <button type="button" class="icon-upload-btn" id="iconUploadBtn">
-                    <i class="fa-solid fa-upload"></i>
-                    Afbeelding kiezen
-                  </button>
-                  <span class="icon-upload-hint">PNG, JPG, SVG — max 2 MB</span>
-                </div>
-                <input id="iconFileInput" type="file" accept="image/*" hidden>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <label class="form-label">Achtergrondkleur <span class="form-label-hint">(als er geen icoon is)</span></label>
-              <div class="color-row">
-                <input id="newAppColor1" type="color" class="color-swatch" value="#18a7df" title="Startkleur">
-                <i class="fa-solid fa-arrow-right" style="color:var(--sand);font-size:0.75rem;flex-shrink:0"></i>
-                <input id="newAppColor2" type="color" class="color-swatch" value="#116e95" title="Eindkleur">
-                <div class="color-preview" id="colorPreview" title="Kleurvoorvertoning"></div>
-                <input id="newAppFallback" class="form-input form-input-sm" type="text" maxlength="3" placeholder="AB" title="Initialen (max 3)">
-              </div>
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" class="btn-add" id="formSubmitBtn">
-                <i class="fa-solid fa-plus"></i>
-                Tegel toevoegen
-              </button>
-              <button type="button" class="btn-cancel" id="formCancelBtn" hidden>
-                Annuleer
-              </button>
-            </div>
-            <div id="formError" class="form-msg form-error" hidden></div>
-            <div id="formSuccess" class="form-msg form-success" hidden></div>
-          </form>
-        </section>
-
+      <div style="padding:20px 20px 24px">
+        <p id="pinModalDesc" style="margin:0 0 16px;font-size:0.87rem;color:var(--muted);line-height:1.5">
+          Voer de beheerders-PIN in om alle beheerfuncties te activeren.
+        </p>
+        <input id="pinInput" class="form-input" type="password" placeholder="PIN" maxlength="8"
+               autocomplete="off" inputmode="numeric" style="margin-bottom:8px">
+        <div id="pinError" class="form-msg form-error" hidden>Onjuiste PIN. Probeer opnieuw.</div>
+        <div id="pinSuccess" class="form-msg form-success" hidden>✓ Beheerdersmodus geactiveerd!</div>
+        <div style="margin-top:14px;display:flex;gap:8px">
+          <button id="pinSubmitBtn" class="btn-add" type="button" style="flex:1">
+            Inloggen
+          </button>
+        </div>
+        <div id="pinChangeSection" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)" hidden>
+          <p style="margin:0 0 10px;font-size:0.82rem;font-weight:700;color:var(--ink)">PIN wijzigen</p>
+          <input id="pinNewInput" class="form-input" type="password" placeholder="Nieuwe PIN"
+                 maxlength="8" autocomplete="off" inputmode="numeric" style="margin-bottom:8px">
+          <button id="pinSaveBtn" class="btn-add" type="button"
+                  style="width:100%;background:linear-gradient(135deg,var(--primary),var(--primary-dark))">
+            PIN opslaan
+          </button>
+          <div id="pinSaveMsg" class="form-msg form-success" hidden>✓ PIN opgeslagen.</div>
+        </div>
       </div>
     </div>
-    </main>
+  </div>
+
+  <!-- ── EDIT APP MODAL ── -->
+  <div id="editAppModal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-label="Tegel bewerken">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <div class="settings-panel-eyebrow">Bewerken</div>
+          <h3 id="editModalTitle">Tegel bewerken</h3>
+        </div>
+        <button class="modal-close" id="closeEditModal" type="button" aria-label="Sluiten">×</button>
+      </div>
+      <div style="overflow-y:auto;flex:1;padding:4px 0 0">
+        <form id="editAppForm" class="add-form" novalidate>
+          <div class="form-row">
+            <label class="form-label" for="editAppName">Naam <span class="required">*</span></label>
+            <input id="editAppName" class="form-input" type="text" placeholder="bijv. Microsoft Forms" required>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="editAppUrl">URL <span class="required">*</span></label>
+            <input id="editAppUrl" class="form-input" type="url" placeholder="https://…" required>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="editAppSubtitle">Categorie</label>
+            <input id="editAppSubtitle" class="form-input" type="text" placeholder="bijv. Microsoft 365">
+          </div>
+
+          <div class="form-row">
+            <label class="form-label">Icoon uploaden</label>
+            <div class="icon-upload-area">
+              <div class="icon-preview" id="editIconPreview">
+                <i class="fa-solid fa-image"></i>
+              </div>
+              <div class="icon-upload-info">
+                <button type="button" class="icon-upload-btn" id="editIconUploadBtn">
+                  <i class="fa-solid fa-upload"></i>
+                  Afbeelding kiezen
+                </button>
+                <span class="icon-upload-hint">PNG, JPG, SVG — max 2 MB</span>
+              </div>
+              <input id="editIconFileInput" type="file" accept="image/*" hidden>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label class="form-label">Achtergrondkleur <span class="form-label-hint">(als er geen icoon is)</span></label>
+            <div class="color-row">
+              <input id="editAppColor1" type="color" class="color-swatch" value="#18a7df" title="Startkleur">
+              <i class="fa-solid fa-arrow-right" style="color:var(--sand);font-size:0.75rem;flex-shrink:0"></i>
+              <input id="editAppColor2" type="color" class="color-swatch" value="#116e95" title="Eindkleur">
+              <div class="color-preview" id="editColorPreview" title="Kleurvoorvertoning"></div>
+              <input id="editAppFallback" class="form-input form-input-sm" type="text" maxlength="3" placeholder="AB" title="Initialen (max 3)">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-add">
+              <i class="fa-solid fa-check"></i>
+              Opslaan
+            </button>
+            <button type="button" class="btn-cancel" id="editCancelBtn">
+              Annuleer
+            </button>
+          </div>
+          <div id="editFormError"   class="form-msg form-error"   hidden></div>
+          <div id="editFormSuccess" class="form-msg form-success" hidden></div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <!-- ── CATALOG MODAL ── -->
@@ -1743,15 +1466,12 @@
           <div class="settings-panel-eyebrow">Bibliotheek</div>
           <h3>Applicatie toevoegen</h3>
         </div>
-        <button class="modal-close" id="closeAddModal" type="button" aria-label="Sluiten">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+        <button class="modal-close" id="closeAddModal" type="button" aria-label="Sluiten">×</button>
       </div>
       <div id="catalogList" class="catalog-list"></div>
       <div class="modal-footer">
         <i class="fa-solid fa-circle-info"></i>
-        Nieuwe app aanmaken?
-        <button type="button" class="modal-link-btn" id="goToSettingsFromModal">Ga naar Instellingen</button>
+        Gebruik de <strong>+</strong> knop om een nieuwe app aan te maken.
       </div>
     </div>
   </div>
@@ -2065,7 +1785,7 @@
         "De enige bron van kennis is ervaring. — Einstein",
         "Schrijf op wat je wilt onthouden — je brein dankt je.",
         "Een vraag stellen duurt een minuut. Niet weten duurt een leven.",
-        "Iedereen is een genie — maar een vis beooreel je niet op klimmen. — Einstein",
+        "Iedereen is een genie — maar een vis beoordeel je niet op klimmen. — Einstein",
         "Slaap is geen tijdverspilling; het is de beste studiemethode.",
         "Creativiteit is intelligentie die plezier heeft. — Einstein",
         "Kleine stapjes elke dag leiden tot grote resultaten.",
@@ -2294,7 +2014,7 @@
 
     function getFilteredApps(query) {
       return orderedApps.filter((app) => {
-        const haystack = `${app.name} ${app.subtitle || ""} ${app.url}`.toLowerCase();
+        const haystack = `${app.name} ${app.subtitle || ""}`.toLowerCase();
         return haystack.includes(query);
       });
     }
@@ -2534,11 +2254,6 @@
     document.addEventListener("keydown", e => {
       if (e.key === "Escape" && !document.getElementById("addFromCatalogModal").hidden) closeCatalogModal();
     });
-    document.getElementById("goToSettingsFromModal").addEventListener("click", () => {
-      closeCatalogModal();
-      openSettings();
-    });
-
     function makeCatalogThumb(app) {
       const wrap = document.createElement("div");
       wrap.className = "catalog-item-thumb";
@@ -2623,6 +2338,132 @@
     /* ══════════════════════════════════════════
        SETTINGS — custom apps & visibility
     ══════════════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       BEHEERDERMODUS
+    ══════════════════════════════════════════ */
+    const PIN_KEY   = `${storageNamespace}:pin`;
+    const ADMIN_KEY = 'ddhAdmin';
+
+    let isAdmin = sessionStorage.getItem(ADMIN_KEY) === '1';
+
+    function getAdminPin() {
+      return localStorage.getItem(PIN_KEY) || '1234';
+    }
+
+    function applyMode() {
+      const fab       = document.getElementById("addAppFab");
+      const badge     = document.getElementById("adminBadge");
+      const lockIcon  = document.getElementById("adminLockIcon");
+      const lockLabel = document.getElementById("adminLockLabel");
+
+      if (isAdmin) {
+        badge.hidden          = false;
+        lockIcon.textContent  = '🔓';
+        lockLabel.textContent = 'Beheer';
+      } else {
+        badge.hidden          = true;
+        lockIcon.textContent  = '🔒';
+        lockLabel.textContent = 'Beheer';
+      }
+
+      /* FAB alleen zichtbaar voor beheerder */
+      if (fab) fab.hidden = !isAdmin;
+    }
+
+    /* ── PIN modal logica ── */
+    (function() {
+      const modal      = document.getElementById("pinModal");
+      const lockBtn    = document.getElementById("adminLockBtn");
+      const closeBtn   = document.getElementById("closePinModal");
+      const submitBtn  = document.getElementById("pinSubmitBtn");
+      const logoutBtn  = document.getElementById("adminLogoutBtn");
+      const pinInput   = document.getElementById("pinInput");
+      const errEl      = document.getElementById("pinError");
+      const sucEl      = document.getElementById("pinSuccess");
+      const changeDiv  = document.getElementById("pinChangeSection");
+      const newInput   = document.getElementById("pinNewInput");
+      const saveBtn    = document.getElementById("pinSaveBtn");
+      const saveMsgEl  = document.getElementById("pinSaveMsg");
+      const pinDesc    = document.getElementById("pinModalDesc");
+      const pinTitle   = document.getElementById("pinModalTitle");
+
+      function openPin() {
+        if (isAdmin) {
+          /* Al ingelogd → toon PIN-wijzig sectie */
+          pinTitle.textContent = 'Beheerdersmodus actief';
+          pinDesc.textContent  = 'Je bent ingelogd als beheerder. Je kunt hier je PIN wijzigen.';
+          document.querySelector('#pinModal .btn-add').style.display = 'none';
+          pinInput.parentElement.style.display = 'none';
+          changeDiv.hidden = false;
+        } else {
+          pinTitle.textContent = 'Beheerdersmodus';
+          pinDesc.textContent  = 'Voer de beheerders-PIN in om alle beheerfuncties te activeren.';
+          document.querySelector('#pinModal .btn-add').style.display = '';
+          pinInput.parentElement.style.display = '';
+          changeDiv.hidden = true;
+          pinInput.value = '';
+          errEl.hidden = true;
+          sucEl.hidden = true;
+        }
+        modal.hidden = false;
+        setTimeout(() => (isAdmin ? newInput : pinInput).focus(), 60);
+      }
+
+      function closePin() {
+        modal.hidden = true;
+        errEl.hidden = true;
+        sucEl.hidden = true;
+        saveMsgEl.hidden = true;
+        pinInput.value  = '';
+        newInput.value  = '';
+      }
+
+      lockBtn.addEventListener("click", openPin);
+      closeBtn.addEventListener("click", closePin);
+      modal.addEventListener("pointerdown", e => { if (e.target === modal) closePin(); });
+      document.addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) closePin(); });
+
+      submitBtn.addEventListener("click", () => {
+        if (pinInput.value === getAdminPin()) {
+          isAdmin = true;
+          sessionStorage.setItem(ADMIN_KEY, '1');
+          sucEl.hidden = false;
+          errEl.hidden = true;
+          applyMode();
+          setTimeout(closePin, 800);
+        } else {
+          errEl.hidden = false;
+          sucEl.hidden = true;
+          pinInput.value = '';
+          pinInput.focus();
+        }
+      });
+
+      pinInput.addEventListener("keydown", e => { if (e.key === "Enter") submitBtn.click(); });
+
+      logoutBtn.addEventListener("click", () => {
+        isAdmin = false;
+        sessionStorage.removeItem(ADMIN_KEY);
+        applyMode();
+      });
+
+      saveBtn.addEventListener("click", () => {
+        const newPin = newInput.value.trim();
+        if (newPin.length < 4) {
+          saveMsgEl.textContent = '⚠ PIN moet minimaal 4 tekens zijn.';
+          saveMsgEl.className   = 'form-msg form-error';
+          saveMsgEl.hidden = false;
+          return;
+        }
+        localStorage.setItem(PIN_KEY, newPin);
+        saveMsgEl.textContent = '✓ PIN opgeslagen.';
+        saveMsgEl.className   = 'form-msg form-success';
+        saveMsgEl.hidden = false;
+        newInput.value = '';
+        setTimeout(() => { saveMsgEl.hidden = true; }, 2500);
+      });
+    })();
+
     const customAppsKey  = `${storageNamespace}:custom`;
     const hiddenAppsKey  = `${storageNamespace}:hidden`;
     const overridesKey   = `${storageNamespace}:overrides`;
@@ -2630,7 +2471,6 @@
     let customApps      = [];
     let hiddenAppIds    = new Set();
     let appOverrides    = {};   // { [appId]: { name?, url?, subtitle?, logo?, color?, fallback? } }
-    let uploadedIconData = null;
     let editingAppId     = null;
 
     /* ── Storage helpers ── */
@@ -2693,80 +2533,9 @@
     }
 
     /* ── View switching ── */
-    function openSettings() {
-      document.getElementById("appsView").hidden     = true;
-      document.getElementById("settingsView").hidden = false;
-      document.getElementById("sideAppsBtn").classList.remove("active");
-      document.getElementById("sideSettingsBtn").classList.add("active");
-      renderSettingsAppList();
-      updateColorPreview();
-    }
-
-    function closeSettings() {
-      document.getElementById("settingsView").hidden = true;
-      document.getElementById("appsView").hidden     = false;
-      document.getElementById("sideSettingsBtn").classList.remove("active");
-      document.getElementById("sideAppsBtn").classList.add("active");
-      rebuildOrderedApps();
-      filterCards();
-    }
-
-    document.getElementById("sideAppsBtn").addEventListener("click", closeSettings);
-    document.getElementById("sideSettingsBtn").addEventListener("click", openSettings);
-    document.getElementById("backBtn").addEventListener("click", closeSettings);
-
-    /* ── Zoekpanel toggle ── */
-    (function () {
-      const btn   = document.getElementById("sideSearchBtn");
-      const panel = document.getElementById("searchPanel");
-      const input = document.getElementById("searchInput");
-
-      function openSearch() {
-        panel.classList.add("open");
-        panel.setAttribute("aria-hidden", "false");
-        btn.classList.add("search-active");
-        // Kleine vertraging zodat de slide-animatie al begint voor focus
-        setTimeout(() => input.focus(), 120);
-      }
-
-      function closeSearch() {
-        panel.classList.remove("open");
-        panel.setAttribute("aria-hidden", "true");
-        btn.classList.remove("search-active");
-      }
-
-      btn.addEventListener("click", () => {
-        panel.classList.contains("open") ? closeSearch() : openSearch();
-      });
-
-      // Sluiten met Escape
-      document.addEventListener("keydown", e => {
-        if (e.key === "Escape" && panel.classList.contains("open")) closeSearch();
-      });
-
-      // Sluiten bij klik buiten panel + knop
-      document.addEventListener("pointerdown", e => {
-        if (!panel.classList.contains("open")) return;
-        if (!panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) closeSearch();
-      }, { passive: true });
-    })();
+    const addAppFab = document.getElementById("addAppFab");
 
     /* ── Settings app list renderer ── */
-    function makeSettingsThumb(app) {
-      const wrap = document.createElement("div");
-      wrap.className = "settings-app-thumb";
-      const src = app.logo || app._uploadedLogo;
-      if (src) {
-        const img = document.createElement("img");
-        img.src = src;
-        img.onerror = () => { img.remove(); wrap.appendChild(makeColorThumb(app)); };
-        wrap.appendChild(img);
-      } else {
-        wrap.appendChild(makeColorThumb(app));
-      }
-      return wrap;
-    }
-
     function makeColorThumb(app) {
       const el = document.createElement("div");
       el.style.cssText = [
@@ -2780,98 +2549,40 @@
       return el;
     }
 
-    function renderSettingsAppList() {
-      const list = document.getElementById("settingsAppList");
-      list.innerHTML = "";
-      getAllApps().forEach(app => {
-        const item = document.createElement("div");
-        item.className = "settings-app-item" + (hiddenAppIds.has(app.id) ? " is-hidden" : "");
+    /* ── Edit modal ── */
+    let uploadedEditIconData = null;
 
-        item.appendChild(makeSettingsThumb(app));
+    const editModal    = document.getElementById("editAppModal");
+    const editModalTitle = document.getElementById("editModalTitle");
 
-        const info = document.createElement("div");
-        info.className = "settings-app-info";
-        const nm = document.createElement("div");
-        nm.className = "settings-app-name";
-        nm.textContent = app.name;
-        const ur = document.createElement("div");
-        ur.className = "settings-app-url";
-        ur.textContent = app.url;
-        info.appendChild(nm);
-        info.appendChild(ur);
-        item.appendChild(info);
-
-        if (app._custom) {
-          const tag = document.createElement("span");
-          tag.className = "custom-tag";
-          tag.textContent = "Eigen";
-          item.appendChild(tag);
-        }
-
-        /* Toggle */
-        const lbl = document.createElement("label");
-        lbl.className = "toggle-switch";
-        lbl.title = hiddenAppIds.has(app.id) ? "Verborgen" : "Zichtbaar";
-        const chk = document.createElement("input");
-        chk.type = "checkbox";
-        chk.checked = !hiddenAppIds.has(app.id);
-        chk.addEventListener("change", () => {
-          if (chk.checked) { hiddenAppIds.delete(app.id); item.classList.remove("is-hidden"); }
-          else             { hiddenAppIds.add(app.id);    item.classList.add("is-hidden"); }
-          saveHiddenApps();
-        });
-        const track = document.createElement("span");
-        track.className = "toggle-track";
-        lbl.appendChild(chk);
-        lbl.appendChild(track);
-        item.appendChild(lbl);
-
-        /* Edit button (all apps) */
-        const editBtn = document.createElement("button");
-        editBtn.className = "edit-app-btn" + (editingAppId === app.id ? " is-editing" : "");
-        editBtn.type = "button";
-        editBtn.title = "Bewerken";
-        editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
-        editBtn.addEventListener("click", () => openEditForm(app));
-        item.appendChild(editBtn);
-
-        /* Delete (custom only) */
-        if (app._custom) {
-          const del = document.createElement("button");
-          del.className = "delete-app-btn";
-          del.type = "button";
-          del.title = "Verwijderen";
-          del.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
-          del.addEventListener("click", () => {
-            if (!confirm(`"${app.name}" definitief verwijderen?`)) return;
-            customApps   = customApps.filter(a => a.id !== app.id);
-            hiddenAppIds.delete(app.id);
-            if (editingAppId === app.id) resetEditForm();
-            saveCustomApps();
-            saveHiddenApps();
-            renderSettingsAppList();
-          });
-          item.appendChild(del);
-        }
-
-        list.appendChild(item);
-      });
+    function updateEditColorPreview() {
+      const c1   = document.getElementById("editAppColor1").value;
+      const c2   = document.getElementById("editAppColor2").value;
+      const grad = `linear-gradient(135deg, ${c1}, ${c2})`;
+      document.getElementById("editColorPreview").style.background = grad;
+      if (!uploadedEditIconData) {
+        const fb  = document.getElementById("editAppFallback").value || "AB";
+        const pre = document.getElementById("editIconPreview");
+        pre.style.background = grad;
+        pre.style.color      = "#fff";
+        pre.innerHTML = `<span style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.1rem;letter-spacing:.04em">${fb.slice(0,3).toUpperCase()}</span>`;
+      }
     }
 
-    /* ── Open edit form for an existing app ── */
-    function openEditForm(app) {
+    function openEditModal(app) {
       editingAppId = app.id;
+      editModalTitle.textContent = app.name;
 
-      document.getElementById("newAppName").value     = app.name     || "";
-      document.getElementById("newAppUrl").value      = app.url      || "";
-      document.getElementById("newAppSubtitle").value = app.subtitle || "";
-      document.getElementById("newAppFallback").value = app.fallback || "";
+      document.getElementById("editAppName").value     = app.name     || "";
+      document.getElementById("editAppUrl").value      = app.url      || "";
+      document.getElementById("editAppSubtitle").value = app.subtitle || "";
+      document.getElementById("editAppFallback").value = app.fallback || "";
 
       /* Icon preview */
-      uploadedIconData = null;
-      const pre = document.getElementById("iconPreview");
+      uploadedEditIconData = null;
+      const pre = document.getElementById("editIconPreview");
       if (app.logo) {
-        uploadedIconData = app.logo;
+        uploadedEditIconData = app.logo;
         pre.innerHTML = "";
         pre.style.background = "none";
         pre.style.color = "";
@@ -2886,179 +2597,168 @@
       }
 
       /* Colors */
-      const colorStr  = app.color || "linear-gradient(135deg, #18a7df, #116e95)";
+      const colorStr   = app.color || "linear-gradient(135deg, #18a7df, #116e95)";
       const colorMatch = colorStr.match(/#[0-9a-fA-F]{3,6}/g);
-      document.getElementById("newAppColor1").value = (colorMatch && colorMatch[0]) || "#18a7df";
-      document.getElementById("newAppColor2").value = (colorMatch && colorMatch[1]) || "#116e95";
+      document.getElementById("editAppColor1").value = (colorMatch && colorMatch[0]) || "#18a7df";
+      document.getElementById("editAppColor2").value = (colorMatch && colorMatch[1]) || "#116e95";
 
-      /* Panel labels */
-      document.getElementById("settingsPanelEyebrow").textContent = "Bewerken";
-      document.getElementById("settingsPanelTitle").textContent   = app.name;
-      document.getElementById("settingsPanelDesc").textContent    = "Pas de naam, het icoon of de URL aan.";
-      document.getElementById("formSubmitBtn").innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Opslaan';
-      document.getElementById("formCancelBtn").hidden = false;
+      /* Clear messages */
+      document.getElementById("editFormError").hidden   = true;
+      document.getElementById("editFormSuccess").hidden = true;
 
-      /* Highlight active row */
-      document.querySelectorAll(".edit-app-btn").forEach(b => b.classList.remove("is-editing"));
-      const allApps = getAllApps();
-      const idx     = allApps.findIndex(a => a.id === app.id);
-      if (idx !== -1) {
-        const rows = document.querySelectorAll(".settings-app-item");
-        if (rows[idx]) rows[idx].querySelector(".edit-app-btn")?.classList.add("is-editing");
-      }
-
-      updateColorPreview();
-
-      /* Scroll right panel into view */
-      document.getElementById("addAppForm").closest(".settings-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+      updateEditColorPreview();
+      editModal.hidden = false;
     }
 
-    /* ── Reset form back to "add new" state ── */
-    function resetEditForm() {
+    function closeEditModal() {
+      editModal.hidden = true;
       editingAppId     = null;
-      uploadedIconData = null;
+      uploadedEditIconData = null;
+      document.getElementById("editAppForm").reset();
+    }
 
-      document.getElementById("addAppForm").reset();
-      const pre = document.getElementById("iconPreview");
+    /* Open edit form — used by edit buttons */
+    function openEditForm(app) {
+      openEditModal(app);
+    }
+
+    /* Open modal in "nieuwe tegel" modus (FAB) */
+    function openAddModal() {
+      editingAppId = null;
+      document.getElementById("editModalTitle").textContent = "Nieuwe tegel";
+      document.getElementById("editAppName").value     = "";
+      document.getElementById("editAppUrl").value      = "";
+      document.getElementById("editAppSubtitle").value = "";
+      document.getElementById("editAppFallback").value = "";
+
+      uploadedEditIconData = null;
+      const pre = document.getElementById("editIconPreview");
       pre.innerHTML        = '<i class="fa-solid fa-image"></i>';
       pre.style.background = "";
       pre.style.color      = "";
-      document.getElementById("newAppColor1").value = "#18a7df";
-      document.getElementById("newAppColor2").value = "#116e95";
-      document.getElementById("settingsPanelEyebrow").textContent = "Toevoegen";
-      document.getElementById("settingsPanelTitle").textContent   = "Nieuwe tegel";
-      document.getElementById("settingsPanelDesc").textContent    = "Maak een eigen applicatietegel aan.";
-      document.getElementById("formSubmitBtn").innerHTML = '<i class="fa-solid fa-plus"></i> Tegel toevoegen';
-      document.getElementById("formCancelBtn").hidden = true;
-      document.querySelectorAll(".edit-app-btn").forEach(b => b.classList.remove("is-editing"));
-      updateColorPreview();
+
+      document.getElementById("editAppColor1").value = "#18a7df";
+      document.getElementById("editAppColor2").value = "#116e95";
+      document.getElementById("editFormError").hidden   = true;
+      document.getElementById("editFormSuccess").hidden = true;
+
+      /* Verander knoptekst naar "Toevoegen" */
+      document.querySelector("#editAppForm .btn-add").innerHTML =
+        '<i class="fa-solid fa-plus"></i> Toevoegen';
+
+      updateEditColorPreview();
+      editModal.hidden = false;
     }
 
-    /* ── Color preview ── */
-    function updateColorPreview() {
-      const c1 = document.getElementById("newAppColor1").value;
-      const c2 = document.getElementById("newAppColor2").value;
-      const grad = `linear-gradient(135deg, ${c1}, ${c2})`;
-      document.getElementById("colorPreview").style.background = grad;
-      if (!uploadedIconData) {
-        const fb  = document.getElementById("newAppFallback").value || "AB";
-        const pre = document.getElementById("iconPreview");
-        pre.style.background = grad;
-        pre.style.color      = "#fff";
-        pre.innerHTML = `<span style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.1rem;letter-spacing:.04em">${fb.slice(0,3).toUpperCase()}</span>`;
-      }
-    }
+    addAppFab.addEventListener("click", openAddModal);
 
-    document.getElementById("newAppColor1").addEventListener("input", updateColorPreview);
-    document.getElementById("newAppColor2").addEventListener("input", updateColorPreview);
-    document.getElementById("newAppFallback").addEventListener("input", updateColorPreview);
+    /* Close buttons */
+    document.getElementById("closeEditModal").addEventListener("click", closeEditModal);
+    document.getElementById("editCancelBtn").addEventListener("click",  closeEditModal);
 
-    /* ── Icon upload ── */
-    document.getElementById("iconUploadBtn").addEventListener("click", () => {
-      document.getElementById("iconFileInput").click();
+    /* Close on backdrop click */
+    editModal.addEventListener("pointerdown", e => {
+      if (e.target === editModal) closeEditModal();
     });
 
-    document.getElementById("iconFileInput").addEventListener("change", e => {
+    /* Close on ESC */
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && !editModal.hidden) closeEditModal();
+    });
+
+    /* Color pickers in edit modal */
+    document.getElementById("editAppColor1").addEventListener("input",   updateEditColorPreview);
+    document.getElementById("editAppColor2").addEventListener("input",   updateEditColorPreview);
+    document.getElementById("editAppFallback").addEventListener("input", updateEditColorPreview);
+
+    /* Icon upload in edit modal */
+    document.getElementById("editIconUploadBtn").addEventListener("click", () => {
+      document.getElementById("editIconFileInput").click();
+    });
+
+    document.getElementById("editIconFileInput").addEventListener("change", e => {
       const file = e.target.files[0];
       if (!file) return;
       if (file.size > 2 * 1024 * 1024) {
-        showFormMsg("error", "Afbeelding is te groot (max 2 MB).");
+        document.getElementById("editFormError").textContent = "Afbeelding is te groot (max 2 MB).";
+        document.getElementById("editFormError").hidden = false;
         return;
       }
       const reader = new FileReader();
       reader.onload = ev => {
-        uploadedIconData = ev.target.result;
-        const pre = document.getElementById("iconPreview");
+        uploadedEditIconData = ev.target.result;
+        const pre = document.getElementById("editIconPreview");
         pre.innerHTML        = "";
         pre.style.background = "none";
         pre.style.color      = "";
         const img = document.createElement("img");
-        img.src = uploadedIconData;
+        img.src = uploadedEditIconData;
         img.style.cssText = "width:100%;height:100%;object-fit:contain;border-radius:8px";
         pre.appendChild(img);
       };
       reader.readAsDataURL(file);
     });
 
-    /* ── Add / Edit app form ── */
-    document.getElementById("addAppForm").addEventListener("submit", e => {
+    /* Edit / Add form submit */
+    document.getElementById("editAppForm").addEventListener("submit", e => {
       e.preventDefault();
-      const name     = document.getElementById("newAppName").value.trim();
-      const url      = document.getElementById("newAppUrl").value.trim();
-      const subtitle = document.getElementById("newAppSubtitle").value.trim();
-      const c1       = document.getElementById("newAppColor1").value;
-      const c2       = document.getElementById("newAppColor2").value;
-      const fallback = (document.getElementById("newAppFallback").value.trim().slice(0, 3) || name.slice(0, 2)).toUpperCase();
+      const name     = document.getElementById("editAppName").value.trim();
+      const url      = document.getElementById("editAppUrl").value.trim();
+      const subtitle = document.getElementById("editAppSubtitle").value.trim();
+      const c1       = document.getElementById("editAppColor1").value;
+      const c2       = document.getElementById("editAppColor2").value;
+      const fallback = (document.getElementById("editAppFallback").value.trim().slice(0, 3) || name.slice(0, 2)).toUpperCase();
 
-      if (!name)                          { showFormMsg("error", "Vul een naam in."); return; }
-      if (!url || !url.startsWith("http")){ showFormMsg("error", "Vul een geldige URL in (begin met https://)."); return; }
+      const errEl = document.getElementById("editFormError");
+      if (!name)                          { errEl.textContent = "Vul een naam in.";                              errEl.hidden = false; return; }
+      if (!url || !url.startsWith("http")){ errEl.textContent = "Vul een geldige URL in (begin met https://)."; errEl.hidden = false; return; }
+      errEl.hidden = true;
 
-      if (editingAppId) {
-        /* ── Editing an existing app ── */
-        const overrideData = {
-          name,
-          url,
-          subtitle: subtitle || undefined,
+      const suc = document.getElementById("editFormSuccess");
+
+      if (editingAppId === null) {
+        /* ── Nieuwe tegel (via FAB) ── */
+        const newApp = {
+          id:       `custom-${Date.now()}`,
+          name, url,
+          subtitle: subtitle || "Eigen tegel",
           fallback,
-          color: `linear-gradient(135deg, ${c1}, ${c2})`
+          color:    `linear-gradient(135deg, ${c1}, ${c2})`,
+          _custom:  true
         };
-        if (uploadedIconData) overrideData.logo = uploadedIconData;
+        if (uploadedEditIconData) newApp.logo = uploadedEditIconData;
+        customApps.push(newApp);
+        saveCustomApps();
+        suc.textContent = `✓ "${name}" is toegevoegd!`;
+      } else {
+        /* ── Bestaande tegel bewerken ── */
+        const overrideData = { name, url, fallback, color: `linear-gradient(135deg, ${c1}, ${c2})` };
+        if (subtitle) overrideData.subtitle = subtitle;
+        if (uploadedEditIconData) overrideData.logo = uploadedEditIconData;
 
         const customIdx = customApps.findIndex(a => a.id === editingAppId);
         if (customIdx !== -1) {
-          /* Custom app — update in place */
           customApps[customIdx] = { ...customApps[customIdx], ...overrideData };
           saveCustomApps();
         } else {
-          /* Built-in app — store override separately */
           appOverrides[editingAppId] = { ...(appOverrides[editingAppId] || {}), ...overrideData };
           saveAppOverrides();
         }
-
-        showFormMsg("success", `✓ "${name}" is bijgewerkt!`);
-        resetEditForm();
-        renderSettingsAppList();
-        setTimeout(() => { document.getElementById("formSuccess").hidden = true; }, 4000);
-        return;
+        suc.textContent = `✓ "${name}" is bijgewerkt!`;
       }
 
-      /* ── Adding a new custom app ── */
-      const newApp = {
-        id:       `custom-${Date.now()}`,
-        name,
-        url,
-        subtitle: subtitle || "Eigen tegel",
-        fallback,
-        color:    `linear-gradient(135deg, ${c1}, ${c2})`,
-        _custom:  true
-      };
-      if (uploadedIconData) newApp.logo = uploadedIconData;
+      suc.hidden = false;
 
-      customApps.push(newApp);
-      saveCustomApps();
-      showFormMsg("success", `✓ "${name}" is toegevoegd aan de bibliotheek!`);
+      /* Knoptekst terug naar "Opslaan" voor volgend gebruik */
+      document.querySelector("#editAppForm .btn-add").innerHTML =
+        '<i class="fa-solid fa-check"></i> Opslaan';
 
-      resetEditForm();
-      renderSettingsAppList();
-      setTimeout(() => { document.getElementById("formSuccess").hidden = true; }, 4000);
+      setTimeout(() => {
+        closeEditModal();
+        rebuildOrderedApps();
+        filterCards();
+      }, 900);
     });
-
-    /* ── Cancel edit ── */
-    document.getElementById("formCancelBtn").addEventListener("click", () => {
-      resetEditForm();
-    });
-
-    function showFormMsg(type, msg) {
-      const err = document.getElementById("formError");
-      const suc = document.getElementById("formSuccess");
-      if (type === "error") {
-        err.textContent = msg; err.hidden = false;
-        suc.hidden = true;
-      } else {
-        suc.textContent = msg; suc.hidden = false;
-        err.hidden = true;
-      }
-    }
 
     /* ══════════════════════════════════════════
        INIT
@@ -3070,6 +2770,7 @@
     rebuildOrderedApps();
     filterCards();
     setView(localStorage.getItem(viewStorageKey) || "grid");
+    applyMode();
   </script>
 </body>
 </html>
